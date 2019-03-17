@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-霍夫直线变形</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-霍夫直线变形</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#Goal
+
+* 使用opencv函数`HoughLines()`和`HoughLinesP()`识别图像中的直线；
+#Theory
+
+##Hough Line Transform
+1. 霍夫直线变形是一种用于侦测直线的变形； 
+2. 应用变形前，首先需要做边缘识别预处理；
+###How does it work?
+
+* 如你所知，图像中的直线可以用两种坐标方式来描述：
+1. 笛卡尔坐标: Parameters: $(m,b)$
+2. 极坐标: Parameters: $(r,\theta)$
+ ![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fc9.png)
+ 对于霍夫变形，我们使用极坐标方式描述，所以，一条直线的坐标关系可以这样表述：
+ $y = \left ( -\dfrac{\cos \theta}{\sin \theta} \right ) x + \left ( \dfrac{r}{\sin \theta} \right )$
+ 变形得到：$r = x \cos \theta + y \sin \theta$
+* 对于任意一个给定的点$(x_{0},y_{0})$,可以定义所有穿过该点的直线集合：
+$r_{\theta} = x_{0} \cdot \cos \theta  + y_{0} \cdot \sin \theta$
+也就是说任意一对$(r_{\theta},\theta)$都代表了一条经过点$(x_{0},y_{0})$的直线
+* 给定一个点$(x_{0}, y_{0})$，我们把穿过这个点的直线集合$(r_{\theta},\theta)$函数关系绘制出来，得到一条正弦曲线 ；比如$ x_{0} = 8 ,y_{0} = 6$ 可以得到如下曲线（在$\theta - r$平面）:
+![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fcb.png)
+我们仅考虑区间： $r > 0$ , $0< \theta < 2 \pi$.
+* 对图像上所有点做相同的操作，如果在$\theta - r$平面有相交，则说明这两个点隶属于同一条直线。把另外两个点：$x_{1} = 9, y_{1} = 4 $和 $x_{2} = 12, y_{2} = 3$的曲线叠加上去：
+![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fcd.png)
+这三个点的直线集合曲线在点$(0.925, 9.6)$相交，也就是说这三个点是可以从属一条直线的，这条直线$\theta=0.925,r=9.6$
+* 也就是说，一条直线可以通过计算所有正弦曲线的交点来检测，在某一个点相交的曲线的越多，则意味着这条直线的点更多；通常，我们可以定义一个threshold用来规定判定为一条直线所需要的最小交点数。
+* 这就是霍夫直线变形的原理，统计所有曲线的相交情况，一旦交点大于threshold，则所有在这个点相交的点都被判定为从属于这条直线；
+###Standard and Probabilistic（概率性） Hough Line Transform
+opencv提供2中变形方式：
+
+* The Standard Hough Transform
+1. 大部分和上述过程一致. 输出结果是矢量集合（vector）$(\theta, r_{\theta})$
+2. 由函数`HoughLines()`实现
+* The Probabilistic Hough Line Transform
+1. 一种更高效的实现方式. 之间输出结果是侦测到的直线 $(x_{0}, y_{0}, x_{1}, y_{1})$
+2. 由函数：`HoughLinesP()`实现
+#code
+```
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
+#include <iostream>
+
+using namespace cv;
+using namespace std;
+
+void help()
+{
+ cout << "\nThis program demonstrates line finding with the Hough transform.\n"
+         "Usage:\n"
+         "./houghlines <image_name>, Default is pic1.jpg\n" << endl;
+}
+
+int main(int argc, char** argv)
+{
+ const char* filename = argc >= 2 ? argv[1] : "pic1.jpg";
+
+ Mat src = imread(filename, 0);
+ if(src.empty())
+ {
+     help();
+     cout << "can not open " << filename << endl;
+     return -1;
+ }
+
+ Mat dst, cdst;
+ Canny(src, dst, 50, 200, 3);
+ cvtColor(dst, cdst, CV_GRAY2BGR);
+
+ #if 0
+  vector<Vec2f> lines;
+  HoughLines(dst, lines, 1, CV_PI/180, 100, 0, 0 );
+
+  for( size_t i = 0; i < lines.size(); i++ )
+  {
+     float rho = lines[i][0], theta = lines[i][1];
+     Point pt1, pt2;
+     double a = cos(theta), b = sin(theta);
+     double x0 = a*rho, y0 = b*rho;
+     pt1.x = cvRound(x0 + 1000*(-b));
+     pt1.y = cvRound(y0 + 1000*(a));
+     pt2.x = cvRound(x0 - 1000*(-b));
+     pt2.y = cvRound(y0 - 1000*(a));
+     line( cdst, pt1, pt2, Scalar(0,0,255), 3, CV_AA);
+  }
+ #else
+  vector<Vec4i> lines;
+  HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
+  for( size_t i = 0; i < lines.size(); i++ )
+  {
+    Vec4i l = lines[i];
+    line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
+  }
+ #endif
+ imshow("source", src);
+ imshow("detected lines", cdst);
+
+ waitKey();
+
+ return 0;
+}
+```
+#Explanation
+1. 加载图像
+
+        Mat src = imread(filename, 0);
+        if(src.empty())
+        {
+        help();
+         cout << "can not open " << filename << endl;
+        return -1;
+        }
+
+2. 使用 Canny detector识别边缘
+
+        Canny(src, dst, 50, 200, 3);
+3. Standard Hough Line Transform
+a. 首先应用变形：
+ ```
+ vector<Vec4i> lines;
+ HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
+ ```
+参数列表:
+
+ * dst:边缘检测的预处理结果输出，应当是一个灰度图
+ * lines: 矢量或者说队列（vector），用于存储被侦测直线的 $(r,\theta)$ 
+ * rho : r 的单位（像素）. 这里使用1个像素
+ * theta:  $\theta$的单位，这里使用一度作为单位 (CV_PI/180)
+ * threshold: 判定为直线所需的最小交点数
+ * srn and stn: Default parameters to zero. Check OpenCV reference for more info. 
+ * maxLineGap: 被判定为从属同一条直线的两个点之间最大的断层像素数量
+
+ b. 把检测到的直线绘制出来(由于只是给出了直线的角度以及到原点的最近距离，其实这种绘图并不会还原原始直线像素位置):
+ ```
+  for( size_t i = 0; i < lines.size(); i++ )
+  {
+    float rho = lines[i][0], theta = lines[i][1];
+    Point pt1, pt2;
+    double a = cos(theta), b = sin(theta);
+    double x0 = a*rho, y0 = b*rho;
+    pt1.x = cvRound(x0 + 1000*(-b));
+    pt1.y = cvRound(y0 + 1000*(a));
+    pt2.x = cvRound(x0 - 1000*(-b));
+    pt2.y = cvRound(y0 - 1000*(a));
+    line( cdst, pt1, pt2, Scalar(0,0,255), 3, CV_AA);
+  }
+ ```
+4. Probabilistic Hough Line Transform
+a. 应用变形：
+
+ ```
+ vector<Vec4i> lines;
+ HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
+ ```
+ 参数列表：
+ * st: 边缘检测的预处理输出，应当是一个灰度图
+ * lines: 一个队列存储被判定为一条直线上的点坐标$ (x_{start}, y_{start}, x_{end}, y_{end})$ 
+ * rho : $ r $单位.这里使用一个像素
+ * theta: $theta$的单位，这里使用一度作为单位 (CV_PI/180)
+ * threshold: 判定为一条直线所需的最小交点数
+ * minLinLength: 组成一条直线所需的最小像素数量. 
+ * maxLineGap: 同一条直线里两个像素的最大断层像素量
+
+ b. 绘制结果.
+ ```
+ for( size_t i = 0; i < lines.size(); i++ )
+ {
+   Vec4i l = lines[i];
+   line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
+ }
+ ```
+#result
+![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fcf.png)
+Probabilistic Hough Line Transform:
+![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fc7.png)</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#Goal
+
+* 使用opencv函数`HoughLines()`和`HoughLinesP()`识别图像中的直线；
+#Theory
+
+##Hough Line Transform
+1. 霍夫直线变形是一种用于侦测直线的变形； 
+2. 应用变形前，首先需要做边缘识别预处理；
+###How does it work?
+
+* 如你所知，图像中的直线可以用两种坐标方式来描述：
+1. 笛卡尔坐标: Parameters: $(m,b)$
+2. 极坐标: Parameters: $(r,\theta)$
+ ![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fc9.png)
+ 对于霍夫变形，我们使用极坐标方式描述，所以，一条直线的坐标关系可以这样表述：
+ $y = \left ( -\dfrac{\cos \theta}{\sin \theta} \right ) x + \left ( \dfrac{r}{\sin \theta} \right )$
+ 变形得到：$r = x \cos \theta + y \sin \theta$
+* 对于任意一个给定的点$(x_{0},y_{0})$,可以定义所有穿过该点的直线集合：
+$r_{\theta} = x_{0} \cdot \cos \theta  + y_{0} \cdot \sin \theta$
+也就是说任意一对$(r_{\theta},\theta)$都代表了一条经过点$(x_{0},y_{0})$的直线
+* 给定一个点$(x_{0}, y_{0})$，我们把穿过这个点的直线集合$(r_{\theta},\theta)$函数关系绘制出来，得到一条正弦曲线 ；比如$ x_{0} = 8 ,y_{0} = 6$ 可以得到如下曲线（在$\theta - r$平面）:
+![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fcb.png)
+我们仅考虑区间： $r > 0$ , $0< \theta < 2 \pi$.
+* 对图像上所有点做相同的操作，如果在$\theta - r$平面有相交，则说明这两个点隶属于同一条直线。把另外两个点：$x_{1} = 9, y_{1} = 4 $和 $x_{2} = 12, y_{2} = 3$的曲线叠加上去：
+![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fcd.png)
+这三个点的直线集合曲线在点$(0.925, 9.6)$相交，也就是说这三个点是可以从属一条直线的，这条直线$\theta=0.925,r=9.6$
+* 也就是说，一条直线可以通过计算所有正弦曲线的交点来检测，在某一个点相交的曲线的越多，则意味着这条直线的点更多；通常，我们可以定义一个threshold用来规定判定为一条直线所需要的最小交点数。
+* 这就是霍夫直线变形的原理，统计所有曲线的相交情况，一旦交点大于threshold，则所有在这个点相交的点都被判定为从属于这条直线；
+###Standard and Probabilistic（概率性） Hough Line Transform
+opencv提供2中变形方式：
+
+* The Standard Hough Transform
+1. 大部分和上述过程一致. 输出结果是矢量集合（vector）$(\theta, r_{\theta})$
+2. 由函数`HoughLines()`实现
+* The Probabilistic Hough Line Transform
+1. 一种更高效的实现方式. 之间输出结果是侦测到的直线 $(x_{0}, y_{0}, x_{1}, y_{1})$
+2. 由函数：`HoughLinesP()`实现
+#code
+```
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
+#include <iostream>
+
+using namespace cv;
+using namespace std;
+
+void help()
+{
+ cout << "\nThis program demonstrates line finding with the Hough transform.\n"
+         "Usage:\n"
+         "./houghlines <image_name>, Default is pic1.jpg\n" << endl;
+}
+
+int main(int argc, char** argv)
+{
+ const char* filename = argc >= 2 ? argv[1] : "pic1.jpg";
+
+ Mat src = imread(filename, 0);
+ if(src.empty())
+ {
+     help();
+     cout << "can not open " << filename << endl;
+     return -1;
+ }
+
+ Mat dst, cdst;
+ Canny(src, dst, 50, 200, 3);
+ cvtColor(dst, cdst, CV_GRAY2BGR);
+
+ #if 0
+  vector<Vec2f> lines;
+  HoughLines(dst, lines, 1, CV_PI/180, 100, 0, 0 );
+
+  for( size_t i = 0; i < lines.size(); i++ )
+  {
+     float rho = lines[i][0], theta = lines[i][1];
+     Point pt1, pt2;
+     double a = cos(theta), b = sin(theta);
+     double x0 = a*rho, y0 = b*rho;
+     pt1.x = cvRound(x0 + 1000*(-b));
+     pt1.y = cvRound(y0 + 1000*(a));
+     pt2.x = cvRound(x0 - 1000*(-b));
+     pt2.y = cvRound(y0 - 1000*(a));
+     line( cdst, pt1, pt2, Scalar(0,0,255), 3, CV_AA);
+  }
+ #else
+  vector<Vec4i> lines;
+  HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
+  for( size_t i = 0; i < lines.size(); i++ )
+  {
+    Vec4i l = lines[i];
+    line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
+  }
+ #endif
+ imshow("source", src);
+ imshow("detected lines", cdst);
+
+ waitKey();
+
+ return 0;
+}
+```
+#Explanation
+1. 加载图像
+
+        Mat src = imread(filename, 0);
+        if(src.empty())
+        {
+        help();
+         cout << "can not open " << filename << endl;
+        return -1;
+        }
+
+2. 使用 Canny detector识别边缘
+
+        Canny(src, dst, 50, 200, 3);
+3. Standard Hough Line Transform
+a. 首先应用变形：
+ ```
+ vector<Vec4i> lines;
+ HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
+ ```
+参数列表:
+
+ * dst:边缘检测的预处理结果输出，应当是一个灰度图
+ * lines: 矢量或者说队列（vector），用于存储被侦测直线的 $(r,\theta)$ 
+ * rho : r 的单位（像素）. 这里使用1个像素
+ * theta:  $\theta$的单位，这里使用一度作为单位 (CV_PI/180)
+ * threshold: 判定为直线所需的最小交点数
+ * srn and stn: Default parameters to zero. Check OpenCV reference for more info. 
+ * maxLineGap: 被判定为从属同一条直线的两个点之间最大的断层像素数量
+
+ b. 把检测到的直线绘制出来(由于只是给出了直线的角度以及到原点的最近距离，其实这种绘图并不会还原原始直线像素位置):
+ ```
+  for( size_t i = 0; i < lines.size(); i++ )
+  {
+    float rho = lines[i][0], theta = lines[i][1];
+    Point pt1, pt2;
+    double a = cos(theta), b = sin(theta);
+    double x0 = a*rho, y0 = b*rho;
+    pt1.x = cvRound(x0 + 1000*(-b));
+    pt1.y = cvRound(y0 + 1000*(a));
+    pt2.x = cvRound(x0 - 1000*(-b));
+    pt2.y = cvRound(y0 - 1000*(a));
+    line( cdst, pt1, pt2, Scalar(0,0,255), 3, CV_AA);
+  }
+ ```
+4. Probabilistic Hough Line Transform
+a. 应用变形：
+
+ ```
+ vector<Vec4i> lines;
+ HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
+ ```
+ 参数列表：
+ * st: 边缘检测的预处理输出，应当是一个灰度图
+ * lines: 一个队列存储被判定为一条直线上的点坐标$ (x_{start}, y_{start}, x_{end}, y_{end})$ 
+ * rho : $ r $单位.这里使用一个像素
+ * theta: $theta$的单位，这里使用一度作为单位 (CV_PI/180)
+ * threshold: 判定为一条直线所需的最小交点数
+ * minLinLength: 组成一条直线所需的最小像素数量. 
+ * maxLineGap: 同一条直线里两个像素的最大断层像素量
+
+ b. 绘制结果.
+ ```
+ for( size_t i = 0; i < lines.size(); i++ )
+ {
+   Vec4i l = lines[i];
+   line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
+ }
+ ```
+#result
+![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fcf.png)
+Probabilistic Hough Line Transform:
+![](opencv-imgproc-霍夫直线变形_files/5741e0d3ab644141b1017fc7.png)</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

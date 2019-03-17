@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-霍夫圆变形</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-霍夫圆变形</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#Goal
+* 使用OpenCV 函数`HoughCircles()`在图像中侦测圆形 .
+#Theory
+##Hough Circle Transform
+* 霍夫圆变形的工作机制极度类似上一节介绍的霍夫直线变形 。
+
+* 在上一节的霍夫直线变形中，直线是由两个笛卡尔坐标分量$(r, \theta)$来描述的. 本节中，我们将需要三个分量来定义一个圆。
+
+ $C : ( x_{center}, y_{center}, r )$
+
+ 这里的$(x_{center}, y_{center})$ 定义了圆心， $r$是半径，这三个分量定义了一个完整的圆：
+ ![](opencv-imgproc-霍夫圆变形_files/574463d2ab644141b101c0cb.png)
+* 处于效率考虑, OpenCV 实现圆形检测的方法比standard Hough Transform要取巧一点: The Hough gradient method. 更多原理请参看 《Learning OpenCV》 。
+#code
+1. 这个程序做什么？
+* 加载图像并做高斯模糊降低噪点
+* 在模糊后的图像上应用Hough Circle Transform 
+* 在显示窗口上显示检测结果.
+2. 如下的例子是一个简单例子，更完美的代码登陆github[下载](https://github.com/Itseez/opencv/blob/master/samples/cpp/tutorial_code/ImgTrans/HoughCircle_Demo.cpp)
+
+        #include "opencv2/highgui/highgui.hpp"
+        #include "opencv2/imgproc/imgproc.hpp"
+        #include <iostream>
+        #include <stdio.h>
+        
+        using namespace cv;
+        
+        /** @function main */
+        int main(int argc, char** argv)
+        {
+          Mat src, src_gray;
+        
+          /// Read the image
+          src = imread( argv[1], 1 );
+        
+          if( !src.data )
+            { return -1; }
+        
+          /// Convert it to gray
+          cvtColor( src, src_gray, CV_BGR2GRAY );
+        
+          /// Reduce the noise so we avoid false circle detection
+          GaussianBlur( src_gray, src_gray, Size(9, 9), 2, 2 );
+        
+          vector<Vec3f> circles;
+        
+          /// Apply the Hough Transform to find the circles
+          HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, 200, 100, 0, 0 );
+        
+          /// Draw the circles detected
+          for( size_t i = 0; i < circles.size(); i++ )
+          {
+              Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+              int radius = cvRound(circles[i][2]);
+              // circle center
+              circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
+              // circle outline
+              circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
+           }
+        
+          /// Show your results
+          namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
+          imshow( "Hough Circle Transform Demo", src );
+        
+          waitKey(0);
+          return 0;
+        }
+#explanation
+1. 加载图像
+        src = imread( argv[1], 1 );
+        
+        if( !src.data )
+          { return -1; }
+2. 灰度转换:
+
+        cvtColor( src, src_gray, CV_BGR2GRAY );
+3. 高斯模糊降噪:
+
+        GaussianBlur( src_gray, src_gray, Size(9, 9), 2, 2 );
+4. 应用Hough Circle Transform:
+
+        vector<Vec3f> circles;
+
+        HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, 200, 100, 0, 0 );
+参数列表:
+* src_gray: 灰度输入图mat
+* circles: 一个用于存储检测到的圆的三个分量的向量 $x_{c}, y_{c}, r $
+* CV_HOUGH_GRADIENT: 定义检测方式.这是当前OpenCV唯一可用的方式
+* dp = 1: 分辨率的倒数
+* min_dist = src_gray.rows/8: 被检测到的圆的中心最小距离
+* param_1 = 200: 在函数内部做Canny edge detector时的upper threshold
+* param_2 = 100*: 检测圆中心点的阈值.
+* min_radius = 0: 最小能被检测的半径，默认为0.
+* max_radius = 0: 最大能被检测的半径.如果未知，设为0
+5. 绘制检测到的圆:
+
+         for( size_t i = 0; i < circles.size(); i++ )
+         {
+                Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+                int radius = cvRound(circles[i][2]);
+                // circle center
+                circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
+                // circle outline
+                circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
+        }
+6. 显示被检测到的圆:
+
+        namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
+        imshow( "Hough Circle Transform Demo", src );
+#result
+![](opencv-imgproc-霍夫圆变形_files/57446aedab64413fd701c144.png)</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#Goal
+* 使用OpenCV 函数`HoughCircles()`在图像中侦测圆形 .
+#Theory
+##Hough Circle Transform
+* 霍夫圆变形的工作机制极度类似上一节介绍的霍夫直线变形 。
+
+* 在上一节的霍夫直线变形中，直线是由两个笛卡尔坐标分量$(r, \theta)$来描述的. 本节中，我们将需要三个分量来定义一个圆。
+
+ $C : ( x_{center}, y_{center}, r )$
+
+ 这里的$(x_{center}, y_{center})$ 定义了圆心， $r$是半径，这三个分量定义了一个完整的圆：
+ ![](opencv-imgproc-霍夫圆变形_files/574463d2ab644141b101c0cb.png)
+* 处于效率考虑, OpenCV 实现圆形检测的方法比standard Hough Transform要取巧一点: The Hough gradient method. 更多原理请参看 《Learning OpenCV》 。
+#code
+1. 这个程序做什么？
+* 加载图像并做高斯模糊降低噪点
+* 在模糊后的图像上应用Hough Circle Transform 
+* 在显示窗口上显示检测结果.
+2. 如下的例子是一个简单例子，更完美的代码登陆github[下载](https://github.com/Itseez/opencv/blob/master/samples/cpp/tutorial_code/ImgTrans/HoughCircle_Demo.cpp)
+
+        #include "opencv2/highgui/highgui.hpp"
+        #include "opencv2/imgproc/imgproc.hpp"
+        #include <iostream>
+        #include <stdio.h>
+        
+        using namespace cv;
+        
+        /** @function main */
+        int main(int argc, char** argv)
+        {
+          Mat src, src_gray;
+        
+          /// Read the image
+          src = imread( argv[1], 1 );
+        
+          if( !src.data )
+            { return -1; }
+        
+          /// Convert it to gray
+          cvtColor( src, src_gray, CV_BGR2GRAY );
+        
+          /// Reduce the noise so we avoid false circle detection
+          GaussianBlur( src_gray, src_gray, Size(9, 9), 2, 2 );
+        
+          vector<Vec3f> circles;
+        
+          /// Apply the Hough Transform to find the circles
+          HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, 200, 100, 0, 0 );
+        
+          /// Draw the circles detected
+          for( size_t i = 0; i < circles.size(); i++ )
+          {
+              Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+              int radius = cvRound(circles[i][2]);
+              // circle center
+              circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
+              // circle outline
+              circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
+           }
+        
+          /// Show your results
+          namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
+          imshow( "Hough Circle Transform Demo", src );
+        
+          waitKey(0);
+          return 0;
+        }
+#explanation
+1. 加载图像
+        src = imread( argv[1], 1 );
+        
+        if( !src.data )
+          { return -1; }
+2. 灰度转换:
+
+        cvtColor( src, src_gray, CV_BGR2GRAY );
+3. 高斯模糊降噪:
+
+        GaussianBlur( src_gray, src_gray, Size(9, 9), 2, 2 );
+4. 应用Hough Circle Transform:
+
+        vector<Vec3f> circles;
+
+        HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, 200, 100, 0, 0 );
+参数列表:
+* src_gray: 灰度输入图mat
+* circles: 一个用于存储检测到的圆的三个分量的向量 $x_{c}, y_{c}, r $
+* CV_HOUGH_GRADIENT: 定义检测方式.这是当前OpenCV唯一可用的方式
+* dp = 1: 分辨率的倒数
+* min_dist = src_gray.rows/8: 被检测到的圆的中心最小距离
+* param_1 = 200: 在函数内部做Canny edge detector时的upper threshold
+* param_2 = 100*: 检测圆中心点的阈值.
+* min_radius = 0: 最小能被检测的半径，默认为0.
+* max_radius = 0: 最大能被检测的半径.如果未知，设为0
+5. 绘制检测到的圆:
+
+         for( size_t i = 0; i < circles.size(); i++ )
+         {
+                Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+                int radius = cvRound(circles[i][2]);
+                // circle center
+                circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
+                // circle outline
+                circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
+        }
+6. 显示被检测到的圆:
+
+        namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
+        imshow( "Hough Circle Transform Demo", src );
+#result
+![](opencv-imgproc-霍夫圆变形_files/57446aedab64413fd701c144.png)</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

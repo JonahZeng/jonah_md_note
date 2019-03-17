@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-模糊处理</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-模糊处理</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#**goal**#
+
+本节将介绍多种用于模糊图像的线型fliter，比如：
+blur()
+GaussianBlur()
+medianBlur()
+bilateralFilter()
+
+#**理论知识**#
+
+* 本节主要介绍用于降噪的模糊处理
+* 为了做模糊处理，我们需要应用fliter到图像上。最常用的类型是线性fliter，输出像素值g(i,j)是由输入像素值f(i+k,j+l)的加权和决定的
+
+　　　　　$g(i,j) = \sum_{k,l} f(i+k, j+l) h(k,l)$
+
+　h(k,l)称为kernel,即filter的系数因子。可以形象地认为kernel是一个移动的系数矩阵窗，横贯整个图像。
+
+　我们会用到许多种filter，如下介绍最常用的：
+##**Normalized Box Filter**##
+
+这种filter是最简单的，得到的像素值是所有kernel相邻像素值的平均值，所有相邻的像素具有相同的权重。
+The kernel is below:
+
+　　　　$K = \dfrac{1}{K_{width} \cdot K_{height}} \begin{bmatrix}
+1 & 1 & 1 & ... & 1 \\
+1 & 1 & 1 & ... & 1 \\
+1 & 1 & 1 & ... & 1 \\
+1 & 1 & 1 & ... & 1 \\
+1 & 1 & 1 & ... & 1
+   \end{bmatrix}$
+##**Gaussian（高斯） filter**##
+* 大概是用得最多的filter，尽管不是最快的。高斯滤镜的机制是输入信号与高斯kernel进行卷积，然后把所有的输出值重新组合成输出信号
+* 一维的高斯kernel是怎样的呢？
+![](opencv-imgproc-模糊处理_files/571bb5e7ab64414ecd00060e.png)
+在中心位置的权重是最大的，离中心位置越远，权重越低。
+
+* 二维的高斯kernel可以用如下公式表述：
+
+$G_{0}(x, y) = A  e^{ \dfrac{ -(x - \mu_{x})^{2} }{ 2\sigma^{2}_{x} } +  \dfrac{ -(y - \mu_{y})^{2} }{ 2\sigma^{2}_{y} } }$
+
+ 　　$\mu$ 代表中心位置 and $\sigma$ 代表方差
+##**Median Filter**##
+
+中值filter遍历所有图像上的像素，用每个像素周围的像素中值来替换它（被替换像素周围的像素通常被定位在一个方形内，比如3*3）
+
+##**Bilateral（双向） Filter**##
+
+* 以上介绍的模糊处理不仅抹掉噪点，而且会抹掉细节，为了防止（至少是一定程度上避免）这种现象，可以使用bilateral filter
+* 类似高斯filter， bilateral filter也会考虑周围像素并把权重赋给他们，这里的权重有两个分量，第一个分量和高斯filter使用的相同，第二个分量引入计算周围的像素和被操作的像素之间的差异。
+
+#**Code**#
+* 这个程序做什么操作？
+* 加载一副图像
+* 应用4个不同前面介绍的filter，并分别显示结果。
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+
+using namespace std;
+using namespace cv;
+
+/// Global Variables
+int DELAY_CAPTION = 1500;
+int DELAY_BLUR = 100;
+int MAX_KERNEL_LENGTH = 31;
+
+Mat src; Mat dst;
+char window_name[] = "Filter Demo 1";
+
+/// 函数头
+int display_caption( char* caption );//用于在全黑的图片上显示文本，如果中途用户按下键盘，则返回-1
+int display_dst( int delay );        //显示结果图像，如用户在delay时间内按下键盘，则返回-1
+
+/**
+ * function main
+ */
+ int main( int argc, char** argv )
+ {
+   namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+
+   /// 加载源图像
+   src = imread( "../images/lena.jpg", 1 );
+
+   if( display_caption( "Original Image" ) != 0 ) 
+     { return 0; }
+
+   dst = src.clone();
+   if( display_dst( DELAY_CAPTION ) != 0 ) 
+     { return 0; }
+
+   /// 应用均匀模糊
+   if( display_caption( "Homogeneous Blur" ) != 0 )
+     { return 0; }
+
+   for ( int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2 )   //演示不同大小的kernel的结果
+       { 
+         blur( src, dst, Size( i, i ), Point(-1,-1) );
+         if( display_dst( DELAY_BLUR ) != 0 ) 
+           { return 0; } 
+       }
+
+    /// 应用高斯模糊
+    if( display_caption( "Gaussian Blur" ) != 0 ) 
+       { return 0; }
+
+    for ( int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2 )
+        { 
+           GaussianBlur( src, dst, Size( i, i ), 0, 0 );
+          if( display_dst( DELAY_BLUR ) != 0 )
+            { return 0; }
+        }
+
+     /// 应用中值模糊
+     if( display_caption( "Median Blur" ) != 0 )
+        { return 0; }
+
+     for ( int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2 )
+         { 
+            medianBlur ( src, dst, i );
+           if( display_dst( DELAY_BLUR ) != 0 ) 
+             { return 0; } 
+         }
+
+     /// 应用 Bilateral Filter
+     if( display_caption( "Bilateral Blur" ) != 0 )
+       { return 0; }
+
+     for ( int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2 )
+         { 
+           bilateralFilter ( src, dst, i, i*2, i/2 );
+           if( display_dst( DELAY_BLUR ) != 0 ) 
+             { return 0; } 
+         }
+
+     /// 等待用户按键
+     display_caption( "End: Press a key!" );
+
+     waitKey(0);
+     return 0;
+ }
+
+ int display_caption( char* caption )
+ {
+   dst = Mat::zeros( src.size(), src.type() );
+   putText( dst, caption,
+            Point( src.cols/4, src.rows/2),
+            CV_FONT_HERSHEY_COMPLEX, 1, Scalar(255, 255, 255) );
+
+   imshow( window_name, dst );
+   int c = waitKey( DELAY_CAPTION );
+   if( c >= 0 ) { return -1; }
+   return 0;
+  }
+
+  int display_dst( int delay )
+  {
+    imshow( window_name, dst );
+    int c = waitKey ( delay );
+    if( c >= 0 ) { return -1; }
+    return 0;
+  }
+```
+#**代码解析**#
+##Normalized Block Filter:
+```
+ blur( src, dst, Size( i, i ), Point(-1,-1) )；
+```    
+* src: Mat类型，源图像
+* dst: Mat类型，目标图像
+* Size( w,h ): 定义使用的kernel长和宽
+* Point(-1, -1): 指明要重新计算的像素点位置，如果是负数，则kernel的中心位置像素被当做计算点。
+##Gaussian Filter
+```
+GaussianBlur( src, dst, Size( i, i ), 0, 0 );
+```
+* src: Mat类型，源图像
+* dst: Mat类型，目标图像
+* Size(w, h):kernel的长和宽. w 和 h 必须是奇数且是正整数，否则kernel的size会用  $\sigma_{x}$ and $\sigma_{y}$ 来计算
+$\sigma_{x}$: x方向的标准差. 0表明 $\sigma_{x}$ 用kernel的size计算得到
+$\sigma_{y}$: y方向的标准差. 0表明 $\sigma_{y}$ 用kernel的size计算得到
+##Median Filter
+```
+medianBlur ( src, dst, i );
+```
+* src: Mat类型，源图像
+* dst: Mat类型，目标图像,必须和源图像类型大小一致
+* i: kernel的大小（长宽） (只有一个参数是因为必须使用方形的kernel). 必须是奇数.
+
+##Bilateral Filter
+```
+bilateralFilter ( src, dst, i, i*2, i/2 );
+```
+* src: Mat类型，源图像
+* dst: Mat类型，目标图像
+* d: 包含周围像素的直径
+* $\sigma_{Color}$: color space标准差.
+* $\sigma_{Space}$: coordinate space 标准差 (in pixel terms)
+最后两个值用于计算获取kernel。</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#**goal**#
+
+本节将介绍多种用于模糊图像的线型fliter，比如：
+blur()
+GaussianBlur()
+medianBlur()
+bilateralFilter()
+
+#**理论知识**#
+
+* 本节主要介绍用于降噪的模糊处理
+* 为了做模糊处理，我们需要应用fliter到图像上。最常用的类型是线性fliter，输出像素值g(i,j)是由输入像素值f(i+k,j+l)的加权和决定的
+
+　　　　　$g(i,j) = \sum_{k,l} f(i+k, j+l) h(k,l)$
+
+　h(k,l)称为kernel,即filter的系数因子。可以形象地认为kernel是一个移动的系数矩阵窗，横贯整个图像。
+
+　我们会用到许多种filter，如下介绍最常用的：
+##**Normalized Box Filter**##
+
+这种filter是最简单的，得到的像素值是所有kernel相邻像素值的平均值，所有相邻的像素具有相同的权重。
+The kernel is below:
+
+　　　　$K = \dfrac{1}{K_{width} \cdot K_{height}} \begin{bmatrix}
+1 & 1 & 1 & ... & 1 \\
+1 & 1 & 1 & ... & 1 \\
+1 & 1 & 1 & ... & 1 \\
+1 & 1 & 1 & ... & 1 \\
+1 & 1 & 1 & ... & 1
+   \end{bmatrix}$
+##**Gaussian（高斯） filter**##
+* 大概是用得最多的filter，尽管不是最快的。高斯滤镜的机制是输入信号与高斯kernel进行卷积，然后把所有的输出值重新组合成输出信号
+* 一维的高斯kernel是怎样的呢？
+![](opencv-imgproc-模糊处理_files/571bb5e7ab64414ecd00060e.png)
+在中心位置的权重是最大的，离中心位置越远，权重越低。
+
+* 二维的高斯kernel可以用如下公式表述：
+
+$G_{0}(x, y) = A  e^{ \dfrac{ -(x - \mu_{x})^{2} }{ 2\sigma^{2}_{x} } +  \dfrac{ -(y - \mu_{y})^{2} }{ 2\sigma^{2}_{y} } }$
+
+ 　　$\mu$ 代表中心位置 and $\sigma$ 代表方差
+##**Median Filter**##
+
+中值filter遍历所有图像上的像素，用每个像素周围的像素中值来替换它（被替换像素周围的像素通常被定位在一个方形内，比如3*3）
+
+##**Bilateral（双向） Filter**##
+
+* 以上介绍的模糊处理不仅抹掉噪点，而且会抹掉细节，为了防止（至少是一定程度上避免）这种现象，可以使用bilateral filter
+* 类似高斯filter， bilateral filter也会考虑周围像素并把权重赋给他们，这里的权重有两个分量，第一个分量和高斯filter使用的相同，第二个分量引入计算周围的像素和被操作的像素之间的差异。
+
+#**Code**#
+* 这个程序做什么操作？
+* 加载一副图像
+* 应用4个不同前面介绍的filter，并分别显示结果。
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+
+using namespace std;
+using namespace cv;
+
+/// Global Variables
+int DELAY_CAPTION = 1500;
+int DELAY_BLUR = 100;
+int MAX_KERNEL_LENGTH = 31;
+
+Mat src; Mat dst;
+char window_name[] = "Filter Demo 1";
+
+/// 函数头
+int display_caption( char* caption );//用于在全黑的图片上显示文本，如果中途用户按下键盘，则返回-1
+int display_dst( int delay );        //显示结果图像，如用户在delay时间内按下键盘，则返回-1
+
+/**
+ * function main
+ */
+ int main( int argc, char** argv )
+ {
+   namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+
+   /// 加载源图像
+   src = imread( "../images/lena.jpg", 1 );
+
+   if( display_caption( "Original Image" ) != 0 ) 
+     { return 0; }
+
+   dst = src.clone();
+   if( display_dst( DELAY_CAPTION ) != 0 ) 
+     { return 0; }
+
+   /// 应用均匀模糊
+   if( display_caption( "Homogeneous Blur" ) != 0 )
+     { return 0; }
+
+   for ( int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2 )   //演示不同大小的kernel的结果
+       { 
+         blur( src, dst, Size( i, i ), Point(-1,-1) );
+         if( display_dst( DELAY_BLUR ) != 0 ) 
+           { return 0; } 
+       }
+
+    /// 应用高斯模糊
+    if( display_caption( "Gaussian Blur" ) != 0 ) 
+       { return 0; }
+
+    for ( int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2 )
+        { 
+           GaussianBlur( src, dst, Size( i, i ), 0, 0 );
+          if( display_dst( DELAY_BLUR ) != 0 )
+            { return 0; }
+        }
+
+     /// 应用中值模糊
+     if( display_caption( "Median Blur" ) != 0 )
+        { return 0; }
+
+     for ( int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2 )
+         { 
+            medianBlur ( src, dst, i );
+           if( display_dst( DELAY_BLUR ) != 0 ) 
+             { return 0; } 
+         }
+
+     /// 应用 Bilateral Filter
+     if( display_caption( "Bilateral Blur" ) != 0 )
+       { return 0; }
+
+     for ( int i = 1; i < MAX_KERNEL_LENGTH; i = i + 2 )
+         { 
+           bilateralFilter ( src, dst, i, i*2, i/2 );
+           if( display_dst( DELAY_BLUR ) != 0 ) 
+             { return 0; } 
+         }
+
+     /// 等待用户按键
+     display_caption( "End: Press a key!" );
+
+     waitKey(0);
+     return 0;
+ }
+
+ int display_caption( char* caption )
+ {
+   dst = Mat::zeros( src.size(), src.type() );
+   putText( dst, caption,
+            Point( src.cols/4, src.rows/2),
+            CV_FONT_HERSHEY_COMPLEX, 1, Scalar(255, 255, 255) );
+
+   imshow( window_name, dst );
+   int c = waitKey( DELAY_CAPTION );
+   if( c >= 0 ) { return -1; }
+   return 0;
+  }
+
+  int display_dst( int delay )
+  {
+    imshow( window_name, dst );
+    int c = waitKey ( delay );
+    if( c >= 0 ) { return -1; }
+    return 0;
+  }
+```
+#**代码解析**#
+##Normalized Block Filter:
+```
+ blur( src, dst, Size( i, i ), Point(-1,-1) )；
+```    
+* src: Mat类型，源图像
+* dst: Mat类型，目标图像
+* Size( w,h ): 定义使用的kernel长和宽
+* Point(-1, -1): 指明要重新计算的像素点位置，如果是负数，则kernel的中心位置像素被当做计算点。
+##Gaussian Filter
+```
+GaussianBlur( src, dst, Size( i, i ), 0, 0 );
+```
+* src: Mat类型，源图像
+* dst: Mat类型，目标图像
+* Size(w, h):kernel的长和宽. w 和 h 必须是奇数且是正整数，否则kernel的size会用  $\sigma_{x}$ and $\sigma_{y}$ 来计算
+$\sigma_{x}$: x方向的标准差. 0表明 $\sigma_{x}$ 用kernel的size计算得到
+$\sigma_{y}$: y方向的标准差. 0表明 $\sigma_{y}$ 用kernel的size计算得到
+##Median Filter
+```
+medianBlur ( src, dst, i );
+```
+* src: Mat类型，源图像
+* dst: Mat类型，目标图像,必须和源图像类型大小一致
+* i: kernel的大小（长宽） (只有一个参数是因为必须使用方形的kernel). 必须是奇数.
+
+##Bilateral Filter
+```
+bilateralFilter ( src, dst, i, i*2, i/2 );
+```
+* src: Mat类型，源图像
+* dst: Mat类型，目标图像
+* d: 包含周围像素的直径
+* $\sigma_{Color}$: color space标准差.
+* $\sigma_{Space}$: coordinate space 标准差 (in pixel terms)
+最后两个值用于计算获取kernel。</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

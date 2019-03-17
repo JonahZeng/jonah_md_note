@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-图像金字塔</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-图像金字塔</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#**Goal**#
+
+使用opencv函数：`pyrUp()`和`pyrDown()`来对指定的图像做低采样和提升采样；
+#**Theory**#
+
+* 通常我们会需要对图像做放大（zoom in）或者缩小（zoom out）处理
+* 尽管opencv有一个超级直观的函数`resize()`，但是我们本节呢我们首先还是要看一下图像金字塔的使用方法，在视觉程序中这种方法被广泛采用；
+#**Image Pyramid**#
+* 图像金字塔是多个图像的集合，并且他们都是从原始图像派生而来，换句话说，也就是原始图像一直downsample，直到得到想要的程度。
+* 有两种图像金字塔：
+    * Gaussian pyramid: 用于降低采样-downsample；
+    * Laplacian pyramid:用于从低分辨率图像构建upsample图像；
+#**Gaussian Pyramid**#
+* 图像金字塔是多层图像的集合，更高层则分辨率越小；
+    ![](opencv-imgproc-图像金字塔_files/5737f62cab64413fd700f70e.png)
+* 每一层按照从下到上都被编号，所以第$(i+1)$层$G_{i+1}$的大小小于$G_{i}$
+* 获取第$(i+1)$层，做如下操作：
+    * 用$G_{i}$ 与Gaussian kernel卷积:
+    $\frac{1}{16} \begin{bmatrix} 
+              1 & 4 & 6 & 4 & 1  \\
+              4 & 16 & 24 & 16 & 4  \\ 
+              6 & 24 & 36 & 24 & 6  \\
+              4 & 16 & 24 & 16 & 4  \\
+              1 & 4 & 6 & 4 & 1 \end{bmatrix}$
+    * 删除所有的偶数行和列；
+* 你很容易注意到，产生的结果是源图像的1/4，从$G_{0}$重复这个操作，就可以得到整个金字塔了；
+* 以上处理过程在downsample时很有用，但如果我们要做upsample呢？
+    * 首先，把源图像的长，宽各自放大一倍，把新得到的偶数行，列都填充为0；
+    * 使用上面相同的kernel（系数换成1/4）做卷积操作，使那些填充为0的像素得到一个新值；
+     $\frac{1}{4} \begin{bmatrix} 
+              1 & 4 & 6 & 4 & 1  \\
+              4 & 16 & 24 & 16 & 4  \\ 
+              6 & 24 & 36 & 24 & 6  \\
+              4 & 16 & 24 & 16 & 4  \\
+              1 & 4 & 6 & 4 & 1 \end{bmatrix}$
+* 这两个处理（downsampling and upsampling）在opencv中由函数`pyrUp()`，`pyrDown()`实现； 
+#**code**#
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/// Global variables
+Mat src, dst, tmp;
+char* window_name = "Pyramids Demo";
+
+
+/**
+ * @function main
+ */
+int main( int argc, char** argv )
+{
+  /// General instructions
+  printf( "\n Zoom In-Out demo  \n " );
+  printf( "------------------ \n" );
+  printf( " * [u] -> Zoom in  \n" );
+  printf( " * [d] -> Zoom out \n" );
+  printf( " * [ESC] -> Close program \n \n" );
+
+  /// Test image - Make sure it s divisible by 2^{n}
+  src = imread( "../images/chicky_512.jpg" );
+  if( !src.data )
+    { printf(" No data! -- Exiting the program \n");
+      return -1; }
+
+  tmp = src;
+  dst = tmp;
+
+  /// Create window
+  namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+  imshow( window_name, dst );
+
+  /// Loop
+  while( true )
+  {
+    int c;
+    c = waitKey(10);
+
+    if( (char)c == 27 )
+      { break; }
+    if( (char)c == 'u' )
+      { pyrUp( tmp, dst, Size( tmp.cols*2, tmp.rows*2 ) );
+        printf( "** Zoom In: Image x 2 \n" );
+      }
+    else if( (char)c == 'd' )
+     { pyrDown( tmp, dst, Size( tmp.cols/2, tmp.rows/2 ) );
+       printf( "** Zoom Out: Image / 2 \n" );
+     }
+
+    imshow( window_name, dst );
+    tmp = dst;
+  }
+  return 0;
+}
+```
+#**explanation**#
+* 用户按下键盘上u后执行：
+
+```
+pyrUp( tmp, dst, Size( tmp.cols*2, tmp.rows*2 )
+```
+upsample操作有3个参数：
+
+>tmp: 输入图像mat，被初始化为源输入；
+dst: 输出图像mat，由于是upsample，所以必须要比输入mat大；
+Size( tmp.cols*2, tmp.rows*2 ) : 输出图像的尺寸；
+
+* 执行downsample操作：
+```
+pyrDown( tmp, dst, Size( tmp.cols/2, tmp.rows/2 )
+```
+也是3个参数：
+
+>tmp: 输入mat;
+dst: 输出mat;
+Size( tmp.cols/2, tmp.rows/2 ) : 输出mat的尺寸，由于是downsample,所以尺寸必须比输入小；
+
+* 必须要注意，mat的长，宽都必须要可以被2整除，否则会发生一个错误；
+#**结果**#
+![](opencv-imgproc-图像金字塔_files/5737f62cab64413fd700f70f.png)
+![](opencv-imgproc-图像金字塔_files/5737f62cab64413fd700f70d.png)
+![](opencv-imgproc-图像金字塔_files/5737f62bab64413fd700f70c.png)</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#**Goal**#
+
+使用opencv函数：`pyrUp()`和`pyrDown()`来对指定的图像做低采样和提升采样；
+#**Theory**#
+
+* 通常我们会需要对图像做放大（zoom in）或者缩小（zoom out）处理
+* 尽管opencv有一个超级直观的函数`resize()`，但是我们本节呢我们首先还是要看一下图像金字塔的使用方法，在视觉程序中这种方法被广泛采用；
+#**Image Pyramid**#
+* 图像金字塔是多个图像的集合，并且他们都是从原始图像派生而来，换句话说，也就是原始图像一直downsample，直到得到想要的程度。
+* 有两种图像金字塔：
+    * Gaussian pyramid: 用于降低采样-downsample；
+    * Laplacian pyramid:用于从低分辨率图像构建upsample图像；
+#**Gaussian Pyramid**#
+* 图像金字塔是多层图像的集合，更高层则分辨率越小；
+    ![](opencv-imgproc-图像金字塔_files/5737f62cab64413fd700f70e.png)
+* 每一层按照从下到上都被编号，所以第$(i+1)$层$G_{i+1}$的大小小于$G_{i}$
+* 获取第$(i+1)$层，做如下操作：
+    * 用$G_{i}$ 与Gaussian kernel卷积:
+    $\frac{1}{16} \begin{bmatrix} 
+              1 & 4 & 6 & 4 & 1  \\
+              4 & 16 & 24 & 16 & 4  \\ 
+              6 & 24 & 36 & 24 & 6  \\
+              4 & 16 & 24 & 16 & 4  \\
+              1 & 4 & 6 & 4 & 1 \end{bmatrix}$
+    * 删除所有的偶数行和列；
+* 你很容易注意到，产生的结果是源图像的1/4，从$G_{0}$重复这个操作，就可以得到整个金字塔了；
+* 以上处理过程在downsample时很有用，但如果我们要做upsample呢？
+    * 首先，把源图像的长，宽各自放大一倍，把新得到的偶数行，列都填充为0；
+    * 使用上面相同的kernel（系数换成1/4）做卷积操作，使那些填充为0的像素得到一个新值；
+     $\frac{1}{4} \begin{bmatrix} 
+              1 & 4 & 6 & 4 & 1  \\
+              4 & 16 & 24 & 16 & 4  \\ 
+              6 & 24 & 36 & 24 & 6  \\
+              4 & 16 & 24 & 16 & 4  \\
+              1 & 4 & 6 & 4 & 1 \end{bmatrix}$
+* 这两个处理（downsampling and upsampling）在opencv中由函数`pyrUp()`，`pyrDown()`实现； 
+#**code**#
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/// Global variables
+Mat src, dst, tmp;
+char* window_name = "Pyramids Demo";
+
+
+/**
+ * @function main
+ */
+int main( int argc, char** argv )
+{
+  /// General instructions
+  printf( "\n Zoom In-Out demo  \n " );
+  printf( "------------------ \n" );
+  printf( " * [u] -> Zoom in  \n" );
+  printf( " * [d] -> Zoom out \n" );
+  printf( " * [ESC] -> Close program \n \n" );
+
+  /// Test image - Make sure it s divisible by 2^{n}
+  src = imread( "../images/chicky_512.jpg" );
+  if( !src.data )
+    { printf(" No data! -- Exiting the program \n");
+      return -1; }
+
+  tmp = src;
+  dst = tmp;
+
+  /// Create window
+  namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+  imshow( window_name, dst );
+
+  /// Loop
+  while( true )
+  {
+    int c;
+    c = waitKey(10);
+
+    if( (char)c == 27 )
+      { break; }
+    if( (char)c == 'u' )
+      { pyrUp( tmp, dst, Size( tmp.cols*2, tmp.rows*2 ) );
+        printf( "** Zoom In: Image x 2 \n" );
+      }
+    else if( (char)c == 'd' )
+     { pyrDown( tmp, dst, Size( tmp.cols/2, tmp.rows/2 ) );
+       printf( "** Zoom Out: Image / 2 \n" );
+     }
+
+    imshow( window_name, dst );
+    tmp = dst;
+  }
+  return 0;
+}
+```
+#**explanation**#
+* 用户按下键盘上u后执行：
+
+```
+pyrUp( tmp, dst, Size( tmp.cols*2, tmp.rows*2 )
+```
+upsample操作有3个参数：
+
+>tmp: 输入图像mat，被初始化为源输入；
+dst: 输出图像mat，由于是upsample，所以必须要比输入mat大；
+Size( tmp.cols*2, tmp.rows*2 ) : 输出图像的尺寸；
+
+* 执行downsample操作：
+```
+pyrDown( tmp, dst, Size( tmp.cols/2, tmp.rows/2 )
+```
+也是3个参数：
+
+>tmp: 输入mat;
+dst: 输出mat;
+Size( tmp.cols/2, tmp.rows/2 ) : 输出mat的尺寸，由于是downsample,所以尺寸必须比输入小；
+
+* 必须要注意，mat的长，宽都必须要可以被2整除，否则会发生一个错误；
+#**结果**#
+![](opencv-imgproc-图像金字塔_files/5737f62cab64413fd700f70f.png)
+![](opencv-imgproc-图像金字塔_files/5737f62cab64413fd700f70d.png)
+![](opencv-imgproc-图像金字塔_files/5737f62bab64413fd700f70c.png)</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

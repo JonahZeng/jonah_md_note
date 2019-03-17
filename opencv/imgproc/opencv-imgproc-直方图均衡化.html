@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-直方图均衡化</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-直方图均衡化</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#goal
+--------
+本节将介绍如下：
+
+* 什么是直方图？
+* 使用OpenCV函数`equalize_hist:equalizeHist <>`来完成直方图均衡化
+
+#theory
+---------
+##什么是直方图？
+1. 直方图是一幅图像的像素在0-255范围上的数量分布图示
+2. 它直接量化了感兴趣的像素值的数量多少
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239b2.png)
+
+##什么是直方图均衡化?
+1. 直方图均衡化是一种增强对比度的方法，最终的结果是像素在直方图的分布范围有扩展
+2. 说的更明白点，拿上面的图像做例子：你可以看到大部分像素都分布在中间位置，均衡化就是扩展两头分布，使得最终的分布范围更广；下图里的绿色范围标识了没有像素分布的区域，均衡化后，这些区域也有了像素分布；
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239ba.png)
+
+##均衡化是如何工作的？
+1. 均衡化意味着把一个分布（指定的直方图）映射到另一个分布（结果直方图，分布范围更大）， 使得像素值在整个范围内都有分布；
+2. 为了得到均衡化效果, 重映射方式应当是一个累计分布函数（$cdf$）（为什么呢？因为累计分布函数满足两个条件1：是递增函数，不会打乱映射前后的像素排列顺序；2：映射后仍然保持0-255范围）；对于给定的直方图$H(i)$, 它的累计分布函数$ H^{'}(i) $是:
+$H^{'}(i) = \sum_{0 \le j < i} H(j)$
+为了这个映射可用，需要做归一化：Y坐标的最大值定为255（对8位图像而言），上面的图像的累积分布函数归一化后：
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239b6.png)
+应用简单的映射，$equalized( x, y )$代表了重映射后的像素值：
+$equalized( x, y ) = H^{'}( src(x,y) )$
+
+#code
+---------
+1. 这个程序做什么？
+* 加载图像
+* 转换成灰阶
+* 使用OpenCV函数`EqualizeHist`完成均衡化
+* 显示源图像与均衡化后的结果图像
+2. code
+
+        #include "opencv2/highgui/highgui.hpp"
+        #include "opencv2/imgproc/imgproc.hpp"
+        #include <iostream>
+        #include <stdio.h>
+        
+        using namespace cv;
+        using namespace std;
+        
+        /**  @function main */
+        int main( int argc, char** argv )
+        {
+          Mat src, dst;
+        
+          char* source_window = "Source image";
+          char* equalized_window = "Equalized Image";
+        
+          /// Load image
+          src = imread( argv[1], 1 );
+        
+          if( !src.data )
+            { cout<<"Usage: ./Histogram_Demo <path_to_image>"<<endl;
+              return -1;}
+        
+          /// Convert to grayscale
+          cvtColor( src, src, CV_BGR2GRAY );
+        
+          /// Apply Histogram Equalization
+          equalizeHist( src, dst );
+        
+          /// Display results
+          namedWindow( source_window, CV_WINDOW_AUTOSIZE );
+          namedWindow( equalized_window, CV_WINDOW_AUTOSIZE );
+        
+          imshow( source_window, src );
+          imshow( equalized_window, dst );
+        
+          /// Wait until user exits the program
+          waitKey(0);
+        
+          return 0;
+        }
+#explanation
+1. 声明源图像和目标输出图像mat和windows names:
+
+        Mat src, dst;
+
+        char* source_window = "Source image";
+        char* equalized_window = "Equalized Image";
+2.加载图像:
+
+        src = imread( argv[1], 1 );
+
+        if( !src.data )
+        { cout<<"Usage: ./Histogram_Demo <path_to_image>"<<endl;
+          return -1;}
+3. 转换成灰度:
+
+        cvtColor( src, src, CV_BGR2GRAY );
+4. 应用均衡化使用函数：`equalizeHist` 
+
+        equalizeHist( src, dst );
+2个参数很简单，分别是源图像mat，和目标图像mat
+
+5. 显示结果（源图像和结果图像） :
+
+        namedWindow( source_window, CV_WINDOW_AUTOSIZE );
+        namedWindow( equalized_window, CV_WINDOW_AUTOSIZE );
+
+        imshow( source_window, src );
+        imshow( equalized_window, dst );
+6. 等待退出程序
+
+        waitKey(0);
+        return 0;
+#result
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239b8.png)
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239be.png)
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239bc.png)
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239b4.png)
+</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#goal
+--------
+本节将介绍如下：
+
+* 什么是直方图？
+* 使用OpenCV函数`equalize_hist:equalizeHist <>`来完成直方图均衡化
+
+#theory
+---------
+##什么是直方图？
+1. 直方图是一幅图像的像素在0-255范围上的数量分布图示
+2. 它直接量化了感兴趣的像素值的数量多少
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239b2.png)
+
+##什么是直方图均衡化?
+1. 直方图均衡化是一种增强对比度的方法，最终的结果是像素在直方图的分布范围有扩展
+2. 说的更明白点，拿上面的图像做例子：你可以看到大部分像素都分布在中间位置，均衡化就是扩展两头分布，使得最终的分布范围更广；下图里的绿色范围标识了没有像素分布的区域，均衡化后，这些区域也有了像素分布；
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239ba.png)
+
+##均衡化是如何工作的？
+1. 均衡化意味着把一个分布（指定的直方图）映射到另一个分布（结果直方图，分布范围更大）， 使得像素值在整个范围内都有分布；
+2. 为了得到均衡化效果, 重映射方式应当是一个累计分布函数（$cdf$）（为什么呢？因为累计分布函数满足两个条件1：是递增函数，不会打乱映射前后的像素排列顺序；2：映射后仍然保持0-255范围）；对于给定的直方图$H(i)$, 它的累计分布函数$ H^{'}(i) $是:
+$H^{'}(i) = \sum_{0 \le j < i} H(j)$
+为了这个映射可用，需要做归一化：Y坐标的最大值定为255（对8位图像而言），上面的图像的累积分布函数归一化后：
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239b6.png)
+应用简单的映射，$equalized( x, y )$代表了重映射后的像素值：
+$equalized( x, y ) = H^{'}( src(x,y) )$
+
+#code
+---------
+1. 这个程序做什么？
+* 加载图像
+* 转换成灰阶
+* 使用OpenCV函数`EqualizeHist`完成均衡化
+* 显示源图像与均衡化后的结果图像
+2. code
+
+        #include "opencv2/highgui/highgui.hpp"
+        #include "opencv2/imgproc/imgproc.hpp"
+        #include <iostream>
+        #include <stdio.h>
+        
+        using namespace cv;
+        using namespace std;
+        
+        /**  @function main */
+        int main( int argc, char** argv )
+        {
+          Mat src, dst;
+        
+          char* source_window = "Source image";
+          char* equalized_window = "Equalized Image";
+        
+          /// Load image
+          src = imread( argv[1], 1 );
+        
+          if( !src.data )
+            { cout<<"Usage: ./Histogram_Demo <path_to_image>"<<endl;
+              return -1;}
+        
+          /// Convert to grayscale
+          cvtColor( src, src, CV_BGR2GRAY );
+        
+          /// Apply Histogram Equalization
+          equalizeHist( src, dst );
+        
+          /// Display results
+          namedWindow( source_window, CV_WINDOW_AUTOSIZE );
+          namedWindow( equalized_window, CV_WINDOW_AUTOSIZE );
+        
+          imshow( source_window, src );
+          imshow( equalized_window, dst );
+        
+          /// Wait until user exits the program
+          waitKey(0);
+        
+          return 0;
+        }
+#explanation
+1. 声明源图像和目标输出图像mat和windows names:
+
+        Mat src, dst;
+
+        char* source_window = "Source image";
+        char* equalized_window = "Equalized Image";
+2.加载图像:
+
+        src = imread( argv[1], 1 );
+
+        if( !src.data )
+        { cout<<"Usage: ./Histogram_Demo <path_to_image>"<<endl;
+          return -1;}
+3. 转换成灰度:
+
+        cvtColor( src, src, CV_BGR2GRAY );
+4. 应用均衡化使用函数：`equalizeHist` 
+
+        equalizeHist( src, dst );
+2个参数很简单，分别是源图像mat，和目标图像mat
+
+5. 显示结果（源图像和结果图像） :
+
+        namedWindow( source_window, CV_WINDOW_AUTOSIZE );
+        namedWindow( equalized_window, CV_WINDOW_AUTOSIZE );
+
+        imshow( source_window, src );
+        imshow( equalized_window, dst );
+6. 等待退出程序
+
+        waitKey(0);
+        return 0;
+#result
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239b8.png)
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239be.png)
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239bc.png)
+![](opencv-imgproc-直方图均衡化_files/574da936ab64413fd70239b4.png)
+</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

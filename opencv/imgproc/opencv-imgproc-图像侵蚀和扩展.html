@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-图像侵蚀和扩展</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-图像侵蚀和扩展</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#**goal**#
+学习形态操作：侵蚀和扩展
+使用函数：erode()和dilate()
+#**理论知识**#
+##形态操作Morphological operations
+* 简而言之，形态操作是一种基于形状的图像操作。形态操作在输入图像上应用结构元素从而得到结果图像。
+* 最基本的两种形态操作：侵蚀，扩展。它们被广泛用于比如：
+降噪、孤立单独的元素或者增加不相干的元素到图像中、寻找图像上强度剧烈变化的区域或者说hole
+* 我们将简短介绍侵蚀和扩展，使用如下的例子：
+![](opencv-imgproc-图像侵蚀和扩展_files/571f3e0fab644153db00123e.png)
+
+##Dilation扩展
+
+* 扩展操作是把图像A和kernel B进行卷积，kernel B可以是任何形状和大小，通常是一个方形或者圆形。
+
+* kernel B有一个指定的锚点，通常是kernel的中心点。
+* 因为kernel B遍历整个图像，我们通过kernel B的卷积叠加可以计算到一个最大值，并且用这个最大值去替换kernel锚点位置的像素。如你猜想，这种最大化操作会导致图像中的亮部扩展。用上面的示例图片，应用这个操作后得到：
+![](opencv-imgproc-图像侵蚀和扩展_files/571f3e0fab644153db00123f.png)
+
+##Erosion侵蚀
+
+* 侵蚀操作是扩展操作的姊妹操作。这种操作通过kernel卷积计算一个最小值来替换被评估像素。
+* 因为kernel B遍历整个图像，我们通过kernel B的卷积叠加可以计算到一个最大值，并且用这个最小值去替换kernel锚点位置的像素。如你猜想，这种最小化操作会导致图像中的暗部扩展。用上面的示例图片，应用这个操作后得到：
+
+　　![](opencv-imgproc-图像侵蚀和扩展_files/571f3e0fab644153db00123d.png)
+　　
+#**code**#
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "highgui.h"
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/// Global variables
+Mat src, erosion_dst, dilation_dst;
+
+int erosion_elem = 0;
+int erosion_size = 0;
+int dilation_elem = 0;
+int dilation_size = 0;
+int const max_elem = 2;
+int const max_kernel_size = 21;
+
+/** Function Headers */
+void Erosion( int, void* );
+void Dilation( int, void* );
+
+/** @function main */
+int main( int argc, char** argv )
+{
+ 
+  src = imread( argv[1] );  //读取图像
+
+  if( !src.data )           //读取成功
+  { return -1; }
+
+  /// 创建显示窗口
+  namedWindow( "Erosion Demo", CV_WINDOW_AUTOSIZE );
+  namedWindow( "Dilation Demo", CV_WINDOW_AUTOSIZE );
+  cvMoveWindow( "Dilation Demo", src.cols, 0 );
+
+  /// 创建 侵蚀 2个调试工具栏Trackbar，一个负责指定kernel的形状，一个负责指定kernel的大小
+  createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Erosion Demo",
+                  &erosion_elem, max_elem,
+                  Erosion );
+
+  createTrackbar( "Kernel size:\n 2n +1", "Erosion Demo",
+                  &erosion_size, max_kernel_size,
+                  Erosion );
+  //每次用户改变选择，都会重新调用Erosion()更新显示
+  /// Create Dilation Trackbar
+  createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Dilation Demo",
+                  &dilation_elem, max_elem,
+                  Dilation );
+
+  createTrackbar( "Kernel size:\n 2n +1", "Dilation Demo",
+                  &dilation_size, max_kernel_size,
+                  Dilation );
+
+  /// Default start
+  Erosion( 0, 0 );
+  Dilation( 0, 0 );
+
+  waitKey(0);
+  return 0;
+}
+
+
+void Erosion( int, void* )
+{
+  int erosion_type;
+  if( erosion_elem == 0 )  //判断用户在滚动条的选择，kernel的形态
+    { erosion_type = MORPH_RECT; }
+  else if( erosion_elem == 1 )
+    { erosion_type = MORPH_CROSS; }
+  else if( erosion_elem == 2) 
+    { erosion_type = MORPH_ELLIPSE; }
+
+  Mat element = getStructuringElement( erosion_type,    //获取滚动条指定的kernel的大小
+                                       Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                       Point( erosion_size, erosion_size ) );
+  
+  /// 应用侵蚀操作，输出到 erosion_dst
+  erode( src, erosion_dst, element );
+  imshow( "Erosion Demo", erosion_dst );
+}
+
+
+void Dilation( int, void* )
+{
+  int dilation_type;
+  if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
+  else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
+  else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
+
+  Mat element = getStructuringElement( dilation_type,
+                                       Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                                       Point( dilation_size, dilation_size ) );
+  /// Apply the dilation operation
+  dilate( src, dilation_dst, element );
+  imshow( "Dilation Demo", dilation_dst );
+}
+```
+#**Explanation**#
+1) 这个程序的主要动作：
+
+ * 加载图像
+ * 创建2个窗口给侵蚀和扩展
+ * 给每个窗口创建2个滚动条，一个用于指定kernel的类型（方形？圆形？十字形？），另一个用于指定kernel的大小
+ * 用户每次拖动滑块，Erosion(), Dilation()都会被调用更新结果并显示。
+
+2)
+```
+void Erosion( int, void* )
+{
+  int erosion_type;
+  if( erosion_elem == 0 )
+    { erosion_type = MORPH_RECT; }
+  else if( erosion_elem == 1 )
+    { erosion_type = MORPH_CROSS; }
+  else if( erosion_elem == 2) 
+    { erosion_type = MORPH_ELLIPSE; }
+
+  Mat element = getStructuringElement( erosion_type,Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                       Point( erosion_size, erosion_size ) );
+ 
+  erode( src, erosion_dst, element );
+  imshow( "Erosion Demo", erosion_dst );
+}
+
+```
+`erode( src, erosion_dst, element );`这个函数执行最终的操作，它接收3个参数，分别是源Mat，输出Mat，kernel（也是Mat类型）；为了根据用户的滚动条指定kernel，使用了一个函数：
+`getStructuringElement()`它的参数依次是：
+
+* kernel形态，可以从以下三种当中选择一种，We can choose any of three shapes for our kernel:
+　　MORPH_RECT
+　　MORPH_CROSS
+　　MORPH_ELLIPSE
+
+* kernel的大小和锚点。如果不指定，默认是3*3的大小，并且锚点在正中央。
+
+</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#**goal**#
+学习形态操作：侵蚀和扩展
+使用函数：erode()和dilate()
+#**理论知识**#
+##形态操作Morphological operations
+* 简而言之，形态操作是一种基于形状的图像操作。形态操作在输入图像上应用结构元素从而得到结果图像。
+* 最基本的两种形态操作：侵蚀，扩展。它们被广泛用于比如：
+降噪、孤立单独的元素或者增加不相干的元素到图像中、寻找图像上强度剧烈变化的区域或者说hole
+* 我们将简短介绍侵蚀和扩展，使用如下的例子：
+![](opencv-imgproc-图像侵蚀和扩展_files/571f3e0fab644153db00123e.png)
+
+##Dilation扩展
+
+* 扩展操作是把图像A和kernel B进行卷积，kernel B可以是任何形状和大小，通常是一个方形或者圆形。
+
+* kernel B有一个指定的锚点，通常是kernel的中心点。
+* 因为kernel B遍历整个图像，我们通过kernel B的卷积叠加可以计算到一个最大值，并且用这个最大值去替换kernel锚点位置的像素。如你猜想，这种最大化操作会导致图像中的亮部扩展。用上面的示例图片，应用这个操作后得到：
+![](opencv-imgproc-图像侵蚀和扩展_files/571f3e0fab644153db00123f.png)
+
+##Erosion侵蚀
+
+* 侵蚀操作是扩展操作的姊妹操作。这种操作通过kernel卷积计算一个最小值来替换被评估像素。
+* 因为kernel B遍历整个图像，我们通过kernel B的卷积叠加可以计算到一个最大值，并且用这个最小值去替换kernel锚点位置的像素。如你猜想，这种最小化操作会导致图像中的暗部扩展。用上面的示例图片，应用这个操作后得到：
+
+　　![](opencv-imgproc-图像侵蚀和扩展_files/571f3e0fab644153db00123d.png)
+　　
+#**code**#
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "highgui.h"
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/// Global variables
+Mat src, erosion_dst, dilation_dst;
+
+int erosion_elem = 0;
+int erosion_size = 0;
+int dilation_elem = 0;
+int dilation_size = 0;
+int const max_elem = 2;
+int const max_kernel_size = 21;
+
+/** Function Headers */
+void Erosion( int, void* );
+void Dilation( int, void* );
+
+/** @function main */
+int main( int argc, char** argv )
+{
+ 
+  src = imread( argv[1] );  //读取图像
+
+  if( !src.data )           //读取成功
+  { return -1; }
+
+  /// 创建显示窗口
+  namedWindow( "Erosion Demo", CV_WINDOW_AUTOSIZE );
+  namedWindow( "Dilation Demo", CV_WINDOW_AUTOSIZE );
+  cvMoveWindow( "Dilation Demo", src.cols, 0 );
+
+  /// 创建 侵蚀 2个调试工具栏Trackbar，一个负责指定kernel的形状，一个负责指定kernel的大小
+  createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Erosion Demo",
+                  &erosion_elem, max_elem,
+                  Erosion );
+
+  createTrackbar( "Kernel size:\n 2n +1", "Erosion Demo",
+                  &erosion_size, max_kernel_size,
+                  Erosion );
+  //每次用户改变选择，都会重新调用Erosion()更新显示
+  /// Create Dilation Trackbar
+  createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Dilation Demo",
+                  &dilation_elem, max_elem,
+                  Dilation );
+
+  createTrackbar( "Kernel size:\n 2n +1", "Dilation Demo",
+                  &dilation_size, max_kernel_size,
+                  Dilation );
+
+  /// Default start
+  Erosion( 0, 0 );
+  Dilation( 0, 0 );
+
+  waitKey(0);
+  return 0;
+}
+
+
+void Erosion( int, void* )
+{
+  int erosion_type;
+  if( erosion_elem == 0 )  //判断用户在滚动条的选择，kernel的形态
+    { erosion_type = MORPH_RECT; }
+  else if( erosion_elem == 1 )
+    { erosion_type = MORPH_CROSS; }
+  else if( erosion_elem == 2) 
+    { erosion_type = MORPH_ELLIPSE; }
+
+  Mat element = getStructuringElement( erosion_type,    //获取滚动条指定的kernel的大小
+                                       Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                       Point( erosion_size, erosion_size ) );
+  
+  /// 应用侵蚀操作，输出到 erosion_dst
+  erode( src, erosion_dst, element );
+  imshow( "Erosion Demo", erosion_dst );
+}
+
+
+void Dilation( int, void* )
+{
+  int dilation_type;
+  if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
+  else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
+  else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
+
+  Mat element = getStructuringElement( dilation_type,
+                                       Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                                       Point( dilation_size, dilation_size ) );
+  /// Apply the dilation operation
+  dilate( src, dilation_dst, element );
+  imshow( "Dilation Demo", dilation_dst );
+}
+```
+#**Explanation**#
+1) 这个程序的主要动作：
+
+ * 加载图像
+ * 创建2个窗口给侵蚀和扩展
+ * 给每个窗口创建2个滚动条，一个用于指定kernel的类型（方形？圆形？十字形？），另一个用于指定kernel的大小
+ * 用户每次拖动滑块，Erosion(), Dilation()都会被调用更新结果并显示。
+
+2)
+```
+void Erosion( int, void* )
+{
+  int erosion_type;
+  if( erosion_elem == 0 )
+    { erosion_type = MORPH_RECT; }
+  else if( erosion_elem == 1 )
+    { erosion_type = MORPH_CROSS; }
+  else if( erosion_elem == 2) 
+    { erosion_type = MORPH_ELLIPSE; }
+
+  Mat element = getStructuringElement( erosion_type,Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                       Point( erosion_size, erosion_size ) );
+ 
+  erode( src, erosion_dst, element );
+  imshow( "Erosion Demo", erosion_dst );
+}
+
+```
+`erode( src, erosion_dst, element );`这个函数执行最终的操作，它接收3个参数，分别是源Mat，输出Mat，kernel（也是Mat类型）；为了根据用户的滚动条指定kernel，使用了一个函数：
+`getStructuringElement()`它的参数依次是：
+
+* kernel形态，可以从以下三种当中选择一种，We can choose any of three shapes for our kernel:
+　　MORPH_RECT
+　　MORPH_CROSS
+　　MORPH_ELLIPSE
+
+* kernel的大小和锚点。如果不指定，默认是3*3的大小，并且锚点在正中央。
+
+</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

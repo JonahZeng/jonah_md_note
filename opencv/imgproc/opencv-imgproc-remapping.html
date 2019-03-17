@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-remapping</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-remapping</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#goal
+* 使用opencv函数`remap()`完成一个简单重新映射程序；
+#theory
+##什么是remap ?
+* 从源图像上某个位置获取像素，然后把这个像素值放置在输出图像另一个位置，重新映射就叫做remap;
+
+* 因为有时候源图像和目标图像并不总是一一对应的关系，所以有时候会需要做插值；
+* 可以这样描述映射过程:
+$g(x,y) = f ( h(x,y) )$
+$g(x,y)$是映射后的像素点，$f(x,y)$是源图像的像素点，$h(x,y)$是映射函数；
+
+* 举个简单例子,假如我们定义$h(x,y)$为：
+$h(x,y) = (I.cols - x, y )$
+结果是怎样的呢？你可以看到，源图像和目标图像是一个水平翻转：
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1b9)![](leanote://file/getImage?fileId=57480c1cab64413fd701f1bf)
+* opencv提供函数`remap()`来实现简单映射实现；
+#code
+1. 这个程序做什么？
+* 加载图像；
+* 每秒种应用一次重映射（从4种方式里挑一种），并分别显示结果；
+* 等待用户按下某个键，结束程序；
+2. code
+```
+ #include "opencv2/highgui/highgui.hpp"
+ #include "opencv2/imgproc/imgproc.hpp"
+ #include <iostream>
+ #include <stdio.h>
+
+ using namespace cv;
+
+ /// Global variables
+ Mat src, dst;
+ Mat map_x, map_y;
+ char* remap_window = "Remap demo";
+ int ind = 0;
+
+ /// Function Headers
+ void update_map( void );
+
+ /**
+ * @function main
+ */
+ int main( int argc, char** argv )
+ {
+   /// Load the image
+   src = imread( argv[1], 1 );
+
+  /// Create dst, map_x and map_y with the same size as src:
+  dst.create( src.size(), src.type() );
+  map_x.create( src.size(), CV_32FC1 );
+  map_y.create( src.size(), CV_32FC1 );
+
+  /// Create window
+  namedWindow( remap_window, CV_WINDOW_AUTOSIZE );
+
+  /// Loop
+  while( true )
+  {
+    /// Each 1 sec. Press ESC to exit the program
+    int c = waitKey( 1000 );
+
+    if( (char)c == 27 )
+      { break; }
+
+    /// Update map_x & map_y. Then apply remap
+    update_map();
+    remap( src, dst, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+
+    /// Display results
+    imshow( remap_window, dst );
+  }
+  return 0;
+ }
+
+ /**
+ * @function update_map
+ * @brief Fill the map_x and map_y matrices with 4 types of mappings
+ */
+ void update_map( void )
+ {
+   ind = ind%4;
+
+   for( int j = 0; j < src.rows; j++ )
+   { 
+     for( int i = 0; i < src.cols; i++ )
+       {
+         switch( ind )
+         {
+           case 0:
+             if( i > src.cols*0.25 && i < src.cols*0.75 && j > src.rows*0.25 && j < src.rows*0.75 )
+               {
+                 map_x.at<float>(j,i) = 2*( i - src.cols*0.25 ) + 0.5 ;
+                 map_y.at<float>(j,i) = 2*( j - src.rows*0.25 ) + 0.5 ;
+                }
+             else
+               { map_x.at<float>(j,i) = 0 ;
+                 map_y.at<float>(j,i) = 0 ;
+               }
+                 break;
+           case 1:
+                 map_x.at<float>(j,i) = i ;
+                 map_y.at<float>(j,i) = src.rows - j ;
+                 break;
+           case 2:
+                 map_x.at<float>(j,i) = src.cols - i ;
+                 map_y.at<float>(j,i) = j ;
+                 break;
+           case 3:
+                 map_x.at<float>(j,i) = src.cols - i ;
+                 map_y.at<float>(j,i) = src.rows - j ;
+                 break;
+         } // end of switch
+       }
+    }
+  ind++;
+}
+```
+#Explanation
+1. 创建后面用到的额全局变量:
+
+        Mat src, dst;
+        Mat map_x, map_y;
+        char* remap_window = "Remap demo";
+        int ind = 0;
+2. 加载图像:
+
+        src = imread( argv[1], 1 );
+        Create the destination image and the two mapping matrices (for x and y )
+
+        dst.create( src.size(), src.type() );
+        map_x.create( src.size(), CV_32FC1 );
+        map_y.create( src.size(), CV_32FC1 );
+3. 创建显示窗口
+
+        namedWindow( remap_window, CV_WINDOW_AUTOSIZE );
+4. 建立循环. 每隔一秒更新一次映射表 (mat_x and mat_y)， 然后应用在源图像上:
+
+        while( true )
+        {
+         /// Each 1 sec. Press ESC to exit the program
+          int c = waitKey( 1000 );
+
+        if( (char)c == 27 )
+        { break; }
+
+        /// Update map_x & map_y. Then apply remap
+        update_map();
+        remap( src, dst, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+
+        /// Display results
+        imshow( remap_window, dst );
+        }
+5. 进行映射的函数是`remap`. 参数列表:
+* src: 源图像mat
+* dst: 目标图像mat，和源图像size相同
+* map_x: x方向映射表. 就是映射函数$ h(i,j)$的$i$分量
+* map_y: y方向分量， map_y 和map_x 和目标图像的大小一定要一致
+* CV_INTER_LINEAR: 对于需要插值的像素，定义插值方式. This is by default.
+* BORDER_CONSTANT: Default
+ 
+ 怎么定义mat_x 和 mat_y? 请往下看：
+6. 定义映射矩阵：我们做了4种方式；
+a. 把图像缩小到一半大小并且在中心显示:
+$h(i,j) = ( 2*i - src.cols/2  + 0.5, 2*j - src.rows/2  + 0.5)$
+ $(i,j)$ 应当处在如下区间: $\dfrac{src.cols}{4}<i<\dfrac{3 \cdot src.cols}{4}$ and  $\dfrac{src.rows}{4}<j<\dfrac{3 \cdot src.rows}{4}$
+b. 上下颠倒: $h( i, j ) = (i, src.rows - j) $
+c. 水平翻转: $h(i,j) = ( src.cols - i, j )$
+d. 旋转180°:$ h(i,j) = ( src.cols - i, src.rows - j )$
+
+        for( int j = 0; j < src.rows; j++ )
+        { for( int i = 0; i < src.cols; i++ )
+            {
+              switch( ind )
+              {
+                case 0:
+                  if( i > src.cols*0.25 && i < src.cols*0.75 && j > src.rows*0.25 && j < src.rows*0.75 )
+                    {
+                      map_x.at<float>(j,i) = 2*( i - src.cols*0.25 ) + 0.5 ;
+                      map_y.at<float>(j,i) = 2*( j - src.rows*0.25 ) + 0.5 ;
+                     }
+                  else
+                    { map_x.at<float>(j,i) = 0 ;
+                      map_y.at<float>(j,i) = 0 ;
+                    }
+                      break;
+                case 1:
+                      map_x.at<float>(j,i) = i ;
+                      map_y.at<float>(j,i) = src.rows - j ;
+                      break;
+                case 2:
+                      map_x.at<float>(j,i) = src.cols - i ;
+                      map_y.at<float>(j,i) = j ;
+                      break;
+                case 3:
+                      map_x.at<float>(j,i) = src.cols - i ;
+                      map_y.at<float>(j,i) = src.rows - j ;
+                      break;
+              } // end of switch
+            }
+          }
+         ind++;
+        }
+#result
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1c3)
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1bd)
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1c5)
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1bb)
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1c1)
+</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#goal
+* 使用opencv函数`remap()`完成一个简单重新映射程序；
+#theory
+##什么是remap ?
+* 从源图像上某个位置获取像素，然后把这个像素值放置在输出图像另一个位置，重新映射就叫做remap;
+
+* 因为有时候源图像和目标图像并不总是一一对应的关系，所以有时候会需要做插值；
+* 可以这样描述映射过程:
+$g(x,y) = f ( h(x,y) )$
+$g(x,y)$是映射后的像素点，$f(x,y)$是源图像的像素点，$h(x,y)$是映射函数；
+
+* 举个简单例子,假如我们定义$h(x,y)$为：
+$h(x,y) = (I.cols - x, y )$
+结果是怎样的呢？你可以看到，源图像和目标图像是一个水平翻转：
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1b9)![](leanote://file/getImage?fileId=57480c1cab64413fd701f1bf)
+* opencv提供函数`remap()`来实现简单映射实现；
+#code
+1. 这个程序做什么？
+* 加载图像；
+* 每秒种应用一次重映射（从4种方式里挑一种），并分别显示结果；
+* 等待用户按下某个键，结束程序；
+2. code
+```
+ #include "opencv2/highgui/highgui.hpp"
+ #include "opencv2/imgproc/imgproc.hpp"
+ #include <iostream>
+ #include <stdio.h>
+
+ using namespace cv;
+
+ /// Global variables
+ Mat src, dst;
+ Mat map_x, map_y;
+ char* remap_window = "Remap demo";
+ int ind = 0;
+
+ /// Function Headers
+ void update_map( void );
+
+ /**
+ * @function main
+ */
+ int main( int argc, char** argv )
+ {
+   /// Load the image
+   src = imread( argv[1], 1 );
+
+  /// Create dst, map_x and map_y with the same size as src:
+  dst.create( src.size(), src.type() );
+  map_x.create( src.size(), CV_32FC1 );
+  map_y.create( src.size(), CV_32FC1 );
+
+  /// Create window
+  namedWindow( remap_window, CV_WINDOW_AUTOSIZE );
+
+  /// Loop
+  while( true )
+  {
+    /// Each 1 sec. Press ESC to exit the program
+    int c = waitKey( 1000 );
+
+    if( (char)c == 27 )
+      { break; }
+
+    /// Update map_x & map_y. Then apply remap
+    update_map();
+    remap( src, dst, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+
+    /// Display results
+    imshow( remap_window, dst );
+  }
+  return 0;
+ }
+
+ /**
+ * @function update_map
+ * @brief Fill the map_x and map_y matrices with 4 types of mappings
+ */
+ void update_map( void )
+ {
+   ind = ind%4;
+
+   for( int j = 0; j < src.rows; j++ )
+   { 
+     for( int i = 0; i < src.cols; i++ )
+       {
+         switch( ind )
+         {
+           case 0:
+             if( i > src.cols*0.25 && i < src.cols*0.75 && j > src.rows*0.25 && j < src.rows*0.75 )
+               {
+                 map_x.at<float>(j,i) = 2*( i - src.cols*0.25 ) + 0.5 ;
+                 map_y.at<float>(j,i) = 2*( j - src.rows*0.25 ) + 0.5 ;
+                }
+             else
+               { map_x.at<float>(j,i) = 0 ;
+                 map_y.at<float>(j,i) = 0 ;
+               }
+                 break;
+           case 1:
+                 map_x.at<float>(j,i) = i ;
+                 map_y.at<float>(j,i) = src.rows - j ;
+                 break;
+           case 2:
+                 map_x.at<float>(j,i) = src.cols - i ;
+                 map_y.at<float>(j,i) = j ;
+                 break;
+           case 3:
+                 map_x.at<float>(j,i) = src.cols - i ;
+                 map_y.at<float>(j,i) = src.rows - j ;
+                 break;
+         } // end of switch
+       }
+    }
+  ind++;
+}
+```
+#Explanation
+1. 创建后面用到的额全局变量:
+
+        Mat src, dst;
+        Mat map_x, map_y;
+        char* remap_window = "Remap demo";
+        int ind = 0;
+2. 加载图像:
+
+        src = imread( argv[1], 1 );
+        Create the destination image and the two mapping matrices (for x and y )
+
+        dst.create( src.size(), src.type() );
+        map_x.create( src.size(), CV_32FC1 );
+        map_y.create( src.size(), CV_32FC1 );
+3. 创建显示窗口
+
+        namedWindow( remap_window, CV_WINDOW_AUTOSIZE );
+4. 建立循环. 每隔一秒更新一次映射表 (mat_x and mat_y)， 然后应用在源图像上:
+
+        while( true )
+        {
+         /// Each 1 sec. Press ESC to exit the program
+          int c = waitKey( 1000 );
+
+        if( (char)c == 27 )
+        { break; }
+
+        /// Update map_x & map_y. Then apply remap
+        update_map();
+        remap( src, dst, map_x, map_y, CV_INTER_LINEAR, BORDER_CONSTANT, Scalar(0,0, 0) );
+
+        /// Display results
+        imshow( remap_window, dst );
+        }
+5. 进行映射的函数是`remap`. 参数列表:
+* src: 源图像mat
+* dst: 目标图像mat，和源图像size相同
+* map_x: x方向映射表. 就是映射函数$ h(i,j)$的$i$分量
+* map_y: y方向分量， map_y 和map_x 和目标图像的大小一定要一致
+* CV_INTER_LINEAR: 对于需要插值的像素，定义插值方式. This is by default.
+* BORDER_CONSTANT: Default
+ 
+ 怎么定义mat_x 和 mat_y? 请往下看：
+6. 定义映射矩阵：我们做了4种方式；
+a. 把图像缩小到一半大小并且在中心显示:
+$h(i,j) = ( 2*i - src.cols/2  + 0.5, 2*j - src.rows/2  + 0.5)$
+ $(i,j)$ 应当处在如下区间: $\dfrac{src.cols}{4}<i<\dfrac{3 \cdot src.cols}{4}$ and  $\dfrac{src.rows}{4}<j<\dfrac{3 \cdot src.rows}{4}$
+b. 上下颠倒: $h( i, j ) = (i, src.rows - j) $
+c. 水平翻转: $h(i,j) = ( src.cols - i, j )$
+d. 旋转180°:$ h(i,j) = ( src.cols - i, src.rows - j )$
+
+        for( int j = 0; j < src.rows; j++ )
+        { for( int i = 0; i < src.cols; i++ )
+            {
+              switch( ind )
+              {
+                case 0:
+                  if( i > src.cols*0.25 && i < src.cols*0.75 && j > src.rows*0.25 && j < src.rows*0.75 )
+                    {
+                      map_x.at<float>(j,i) = 2*( i - src.cols*0.25 ) + 0.5 ;
+                      map_y.at<float>(j,i) = 2*( j - src.rows*0.25 ) + 0.5 ;
+                     }
+                  else
+                    { map_x.at<float>(j,i) = 0 ;
+                      map_y.at<float>(j,i) = 0 ;
+                    }
+                      break;
+                case 1:
+                      map_x.at<float>(j,i) = i ;
+                      map_y.at<float>(j,i) = src.rows - j ;
+                      break;
+                case 2:
+                      map_x.at<float>(j,i) = src.cols - i ;
+                      map_y.at<float>(j,i) = j ;
+                      break;
+                case 3:
+                      map_x.at<float>(j,i) = src.cols - i ;
+                      map_y.at<float>(j,i) = src.rows - j ;
+                      break;
+              } // end of switch
+            }
+          }
+         ind++;
+        }
+#result
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1c3)
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1bd)
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1c5)
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1bb)
+![](leanote://file/getImage?fileId=57480c1cab64413fd701f1c1)
+</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

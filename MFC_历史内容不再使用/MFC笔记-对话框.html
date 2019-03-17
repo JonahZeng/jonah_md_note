@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>MFC笔记----对话框</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">MFC笔记----对话框</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#模态对话框#
+模态对话框可以定义为局部变量，因为此时应用程序暂停执行，必须等该对话框关闭以后才往下执行：
+
+```C++
+void CTestView::OnTest()
+{
+
+   CTestDlg dlg;  //dlg是一个局部变量
+
+   dlg.DoModal();
+}
+```
+#非模态对话框#
+需要注意的是对于非模态（目前我不常用）对话框，如果保留了IDCANCEL   IDOK这2个按钮，则必须在对话框类  内重写OnCancel( )  OnOK( )函数并调用DestoryWindow( )去销毁窗口，同时不要再去调用基类的OnCancel( ) OnOK( )；
+
+#如何访问对话框上的控件？#
+
+CWnd*   CWnd: :GetDlgItem(int nID) const ;
+还有其他函数直接进行数据转化：
+GetDlgItemText（）
+GetDlgItemInt(  )
+将控件与数据成员关联：参看下文DoDateExchange( )
+将控件与控件成员关联：比如把一个EDIT框控件与一个CEdit  成员关联，参看  DoDateExchange( )
+SDK全局函数: :SendMessage( )
+CWnd 函数 SendDlgItemMessage( )
+#如何让CStatic  静态文本响应消息？#
+如果是拖放控件，则应当在属性中设置Notify 为ture;
+若是使用Create（）创建窗口，则应设置SS_NOTIFY  ；
+
+```
+void CShowDlg::OnStnClickedShowtext()
+{
+	
+	CString showText;
+	GetDlgItemText(IDC_SHOWTEXT,showText);
+	if(showText==_T("show text 1"))
+	{
+		SetDlgItemText(IDC_SHOWTEXT,_T("SHOW TEXT 1"));
+	}
+	else
+	{
+		SetDlgItemText(IDC_SHOWTEXT,_T("show text 1"));
+	}
+}
+```
+
+#DoDateExchange( )#
+当我们给对话框控件比如edit框关联一个数据成员时，在头h文件中可以看到一个申明：
+
+```
+class CShowDlg : public CDialog
+{
+	DECLARE_DYNAMIC(CShowDlg)
+
+public:
+	CShowDlg(CWnd* pParent = NULL);   // 标准构造函数
+	virtual ~CShowDlg();
+
+
+	enum { IDD = IDD_DIALOG1 };
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
+
+	DECLARE_MESSAGE_MAP()
+private:
+	CButton m_AddBtn;
+public:
+	afx_msg void OnBnClickedButtonAdd();
+	afx_msg void OnStnClickedShowtext();
+	int m_nEDIT1;                               //这里申明了一个公有成员
+};
+```
+在cpp文件中可以看到：
+
+```
+CShowDlg::CShowDlg(CWnd* pParent /*=NULL*/)
+	: CDialog(CShowDlg::IDD, pParent)
+	, m_nEDIT1(0)  //被初始化
+{
+
+}
+
+
+void CShowDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_EDIT1, m_nEDIT1);   //把数据成员和控件ID关联起来
+	DDV_MinMaxInt(pDX, m_nEDIT1, 0, 65535);//上限值与下限值
+}
+```
+注意：不要直接调用DoDateExchange( )，而是要调用UpdateData( )
+
+```
+void CShowDlg::OnBnClickedCalculute()
+{
+	UpdateData(TRUE);     //获取控件数据
+	m_nEDIT3=m_nEDIT1+m_nEDIT2;
+	UpdateData(FALSE);    //设置控件显示
+}
+```
+
+#如何在单文档程序中实现TAB键功能#
+目前只想到这种实现方法：
+思路是这样：从CEdit类派生一个编辑框类CTabEdit
+
+```
+#pragma once
+#define UM_CHANGEFOCUS WM_USER+1
+
+// CTabEdit
+
+class CTabEdit : public CEdit
+{
+	DECLARE_DYNAMIC(CTabEdit)
+
+public:
+	CTabEdit();
+	virtual ~CTabEdit();
+
+protected:
+	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);//对TAB键进行过滤
+};
+/**************************************************/
+void CTabEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	if (nChar==0x09)
+	{
+		::PostMessageA(GetParent()->m_hWnd,UM_CHANGEFOCUS,0,0);//当按下TAB键后给给CView类父窗口发送自定义消息，通知父窗口改变输入焦点
+	}
+	else
+	CEdit::OnChar(nChar, nRepCnt, nFlags);
+}
+```
+
+在CView类中头文件中增加若干个CTabEdit对象成员，然后在WM_CREATE消息中创建若干个编辑框
+
+```
+int Clesson4View::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CView::OnCreate(lpCreateStruct) == -1)
+		return -1;
+
+	
+	m_edit1.Create(WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|WS_TABSTOP,CRect(10,30,110,50),this,IDC_VIEW_EDIT1);
+	m_edit2.Create(WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|WS_TABSTOP,CRect(10,60,110,80),this,IDC_VIEW_EDIT2);
+	m_edit3.Create(WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|WS_TABSTOP,CRect(10,90,110,110),this,IDC_VIEW_EDIT3);
+	return 0;
+}
+```
+在CView类中响应自定义消息
+头文件声明消息响应函数
+
+```
+afx_msg LRESULT OnUMchangeFocus(WPARAM wparam,LPARAM lparam);
+```
+源文件中用ON_MESSAGE宏关联，函数实现
+
+```
+ON_MESSAGE(UM_CHANGEFOCUS,&Clesson4View::OnUMchangeFocus)
+/***********************************/
+LRESULT Clesson4View::OnUMchangeFocus(WPARAM wparam,LPARAM lparam)
+{
+	GetNextDlgTabItem(GetFocus())->SetFocus();
+	return 0;
+}
+```</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#模态对话框#
+模态对话框可以定义为局部变量，因为此时应用程序暂停执行，必须等该对话框关闭以后才往下执行：
+
+```C++
+void CTestView::OnTest()
+{
+
+   CTestDlg dlg;  //dlg是一个局部变量
+
+   dlg.DoModal();
+}
+```
+#非模态对话框#
+需要注意的是对于非模态（目前我不常用）对话框，如果保留了IDCANCEL   IDOK这2个按钮，则必须在对话框类  内重写OnCancel( )  OnOK( )函数并调用DestoryWindow( )去销毁窗口，同时不要再去调用基类的OnCancel( ) OnOK( )；
+
+#如何访问对话框上的控件？#
+
+CWnd*   CWnd: :GetDlgItem(int nID) const ;
+还有其他函数直接进行数据转化：
+GetDlgItemText（）
+GetDlgItemInt(  )
+将控件与数据成员关联：参看下文DoDateExchange( )
+将控件与控件成员关联：比如把一个EDIT框控件与一个CEdit  成员关联，参看  DoDateExchange( )
+SDK全局函数: :SendMessage( )
+CWnd 函数 SendDlgItemMessage( )
+#如何让CStatic  静态文本响应消息？#
+如果是拖放控件，则应当在属性中设置Notify 为ture;
+若是使用Create（）创建窗口，则应设置SS_NOTIFY  ；
+
+```
+void CShowDlg::OnStnClickedShowtext()
+{
+	
+	CString showText;
+	GetDlgItemText(IDC_SHOWTEXT,showText);
+	if(showText==_T("show text 1"))
+	{
+		SetDlgItemText(IDC_SHOWTEXT,_T("SHOW TEXT 1"));
+	}
+	else
+	{
+		SetDlgItemText(IDC_SHOWTEXT,_T("show text 1"));
+	}
+}
+```
+
+#DoDateExchange( )#
+当我们给对话框控件比如edit框关联一个数据成员时，在头h文件中可以看到一个申明：
+
+```
+class CShowDlg : public CDialog
+{
+	DECLARE_DYNAMIC(CShowDlg)
+
+public:
+	CShowDlg(CWnd* pParent = NULL);   // 标准构造函数
+	virtual ~CShowDlg();
+
+
+	enum { IDD = IDD_DIALOG1 };
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
+
+	DECLARE_MESSAGE_MAP()
+private:
+	CButton m_AddBtn;
+public:
+	afx_msg void OnBnClickedButtonAdd();
+	afx_msg void OnStnClickedShowtext();
+	int m_nEDIT1;                               //这里申明了一个公有成员
+};
+```
+在cpp文件中可以看到：
+
+```
+CShowDlg::CShowDlg(CWnd* pParent /*=NULL*/)
+	: CDialog(CShowDlg::IDD, pParent)
+	, m_nEDIT1(0)  //被初始化
+{
+
+}
+
+
+void CShowDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_EDIT1, m_nEDIT1);   //把数据成员和控件ID关联起来
+	DDV_MinMaxInt(pDX, m_nEDIT1, 0, 65535);//上限值与下限值
+}
+```
+注意：不要直接调用DoDateExchange( )，而是要调用UpdateData( )
+
+```
+void CShowDlg::OnBnClickedCalculute()
+{
+	UpdateData(TRUE);     //获取控件数据
+	m_nEDIT3=m_nEDIT1+m_nEDIT2;
+	UpdateData(FALSE);    //设置控件显示
+}
+```
+
+#如何在单文档程序中实现TAB键功能#
+目前只想到这种实现方法：
+思路是这样：从CEdit类派生一个编辑框类CTabEdit
+
+```
+#pragma once
+#define UM_CHANGEFOCUS WM_USER+1
+
+// CTabEdit
+
+class CTabEdit : public CEdit
+{
+	DECLARE_DYNAMIC(CTabEdit)
+
+public:
+	CTabEdit();
+	virtual ~CTabEdit();
+
+protected:
+	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);//对TAB键进行过滤
+};
+/**************************************************/
+void CTabEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	if (nChar==0x09)
+	{
+		::PostMessageA(GetParent()->m_hWnd,UM_CHANGEFOCUS,0,0);//当按下TAB键后给给CView类父窗口发送自定义消息，通知父窗口改变输入焦点
+	}
+	else
+	CEdit::OnChar(nChar, nRepCnt, nFlags);
+}
+```
+
+在CView类中头文件中增加若干个CTabEdit对象成员，然后在WM_CREATE消息中创建若干个编辑框
+
+```
+int Clesson4View::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CView::OnCreate(lpCreateStruct) == -1)
+		return -1;
+
+	
+	m_edit1.Create(WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|WS_TABSTOP,CRect(10,30,110,50),this,IDC_VIEW_EDIT1);
+	m_edit2.Create(WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|WS_TABSTOP,CRect(10,60,110,80),this,IDC_VIEW_EDIT2);
+	m_edit3.Create(WS_CHILD|WS_BORDER|WS_VISIBLE|ES_LEFT|WS_TABSTOP,CRect(10,90,110,110),this,IDC_VIEW_EDIT3);
+	return 0;
+}
+```
+在CView类中响应自定义消息
+头文件声明消息响应函数
+
+```
+afx_msg LRESULT OnUMchangeFocus(WPARAM wparam,LPARAM lparam);
+```
+源文件中用ON_MESSAGE宏关联，函数实现
+
+```
+ON_MESSAGE(UM_CHANGEFOCUS,&Clesson4View::OnUMchangeFocus)
+/***********************************/
+LRESULT Clesson4View::OnUMchangeFocus(WPARAM wparam,LPARAM lparam)
+{
+	GetNextDlgTabItem(GetFocus())->SetFocus();
+	return 0;
+}
+```</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

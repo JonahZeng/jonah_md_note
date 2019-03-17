@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>难题1：怎么利用文档--视图结构来显示以及处理图片（利用OPENCV）</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">难题1：怎么利用文档--视图结构来显示以及处理图片（利用OPENCV）</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#1.绕开MFC的串行化函数Serialize(CArchive& ar)#
+　　为什么要绕开，因为我并不知道图片的编码格式，需要借助opencv的imread()函数来进行解码返回一个Mat对象。imread接收文件路径作为参数，而CDocument类（也就是我们程序的doc类的基类）接收文件路径后构造一个CFile 对象并与CArchive对象关联：
+　　
+
+    BOOL CDocument::OnOpenDocument(LPCTSTR lpszPathName)
+    {
+
+       CFile* pFile = GetFile(lpszPathName,
+           CFile::modeRead|CFile::shareDenyWrite, pfe);
+   
+       DeleteContents();//打开新文档，释放旧文档的内存空间 
+   
+       CArchive loadArchive(pFile, CArchive::load | CArchive::bNoFlushOnDelete);
+       loadArchive.m_pDocument = this;
+       loadArchive.m_bForceFlat = FALSE;
+   
+   
+       CWaitCursor wait;
+       if (pFile->GetLength() != 0)
+           Serialize(loadArchive);     // 调用CDocument类的Serialize（）函数
+       loadArchive.Close();
+       ReleaseFile(pFile, FALSE);
+   
+       SetModifiedFlag(FALSE);     // start off with unmodified
+   
+       return TRUE;
+    }
+可以看到，这个时候在我们的代码里必须要重写`OnOpenDocument(LPCTSTR lpszPathName)`函数，不要构造CFile和CArchive对象，利用`imread（）`接收文件路径参数，利用返回的Mat对象来处理图像,目前测试的方法是在doc类中添加一个Mat成员。好在`OnOpenDocument(LPCTSTR lpszPathName)`正好是一个虚函数。
+
+    #include <cv.h>
+    #include <highgui.h>
+    using namespace cv;
+    //放在doc类头文件，view类已经包含了doc类头文件
+    
+    BOOL CseralizeDoc::OnOpenDocument(LPCTSTR lpszPathName)
+    {
+	    /*if (!CDocument::OnOpenDocument(lpszPathName))
+	    	return FALSE;*/
+	    DeleteContents();
+	    //SetModifiedFlag();  // dirty during de-serialize
+	    CT2A picName(lpszPathName);
+	    m_Mat=imread(picName.m_psz);
+	    if (m_Mat.data==NULL)
+	    {
+	    	AfxMessageBox(_T("load image failed !"));
+	    }
+	    if (m_Mat.isContinuous())
+	    {
+	    	return TRUE;
+	    }
+	    return FALSE;
+	    
+	    //SetModifiedFlag(FALSE);
+	
+    }
+    
+第一步成功。
+#2.使用MFC在视图显示图片#
+需要利用Mat对象保存的数据来显示，MFC显示位图每个像素并不是3个字节，而是4个，所以，在doc类头文件里，我们增加一个结构定义：
+
+    typedef struct  
+    {
+	  BYTE B;
+	  BYTE G;
+	  BYTE R;
+ 	  BYTE reserved;
+    }BGR4;
+
+然后进行数据扩充，把mat对象data指针指向的矩阵进行复制和补充。
+
+    void CseralizeView::OnDraw(CDC* pDC)
+    {
+    	CseralizeDoc* pDoc = GetDocument();
+    	ASSERT_VALID(pDoc);
+    	if (!pDoc)
+    		return;
+    	if (!pDoc->m_Mat.empty()&&pDoc->m_Mat.isContinuous())
+    	{
+    		UINT cols=pDoc->m_Mat.cols;
+    		UINT rows=pDoc->m_Mat.rows;
+    		BGR4* tempMemory=new BGR4[cols*rows];  //申请内存给扩充后的矩阵
+    		if (tempMemory==NULL)
+    		{
+    			return ;
+    		}
+    		else
+    		{
+    			for (UINT i=0;i<rows;i++)
+    			{
+    				for (UINT j=0;j<cols;j++)
+    				{
+    					tempMemory[i*cols+j].B=pDoc->m_Mat.data[(i*cols+j)*3];
+    					tempMemory[i*cols+j].G=pDoc->m_Mat.data[(i*cols+j)*3+1];
+    					tempMemory[i*cols+j].R=pDoc->m_Mat.data[(i*cols+j)*3+2];
+    					tempMemory[i*cols+j].reserved=0;     //扩充
+    				}
+    			}
+    
+    			CRect clientRect;
+    			GetClientRect(&clientRect);
+    
+    			BITMAP bm={0,cols,rows,4*cols,1,32,tempMemory};   //32=4个字节
+    			
+    
+    			CBitmap show;
+    			show.CreateBitmapIndirect(&bm);
+    
+    			CDC compatibleDC;
+    			compatibleDC.CreateCompatibleDC(pDC);
+    			compatibleDC.SelectObject(&show);
+    
+    			pDC->SetStretchBltMode(HALFTONE);//防止颜色失真
+		    	pDC->StretchBlt(0,0,clientRect.Width(),clientRect.Height(),&compatibleDC,0,0,cols,rows,SRCCOPY);。
+    			delete []tempMemory;
+    		}
+    
+    		
+    	}
+    	
+    	
+    }
+    
+    
+这一步测试也成功了，但是显示窗口的比例不对，第三步调整窗口的长宽比例。
+</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#1.绕开MFC的串行化函数Serialize(CArchive& ar)#
+　　为什么要绕开，因为我并不知道图片的编码格式，需要借助opencv的imread()函数来进行解码返回一个Mat对象。imread接收文件路径作为参数，而CDocument类（也就是我们程序的doc类的基类）接收文件路径后构造一个CFile 对象并与CArchive对象关联：
+　　
+
+    BOOL CDocument::OnOpenDocument(LPCTSTR lpszPathName)
+    {
+
+       CFile* pFile = GetFile(lpszPathName,
+           CFile::modeRead|CFile::shareDenyWrite, pfe);
+   
+       DeleteContents();//打开新文档，释放旧文档的内存空间 
+   
+       CArchive loadArchive(pFile, CArchive::load | CArchive::bNoFlushOnDelete);
+       loadArchive.m_pDocument = this;
+       loadArchive.m_bForceFlat = FALSE;
+   
+   
+       CWaitCursor wait;
+       if (pFile->GetLength() != 0)
+           Serialize(loadArchive);     // 调用CDocument类的Serialize（）函数
+       loadArchive.Close();
+       ReleaseFile(pFile, FALSE);
+   
+       SetModifiedFlag(FALSE);     // start off with unmodified
+   
+       return TRUE;
+    }
+可以看到，这个时候在我们的代码里必须要重写`OnOpenDocument(LPCTSTR lpszPathName)`函数，不要构造CFile和CArchive对象，利用`imread（）`接收文件路径参数，利用返回的Mat对象来处理图像,目前测试的方法是在doc类中添加一个Mat成员。好在`OnOpenDocument(LPCTSTR lpszPathName)`正好是一个虚函数。
+
+    #include <cv.h>
+    #include <highgui.h>
+    using namespace cv;
+    //放在doc类头文件，view类已经包含了doc类头文件
+    
+    BOOL CseralizeDoc::OnOpenDocument(LPCTSTR lpszPathName)
+    {
+	    /*if (!CDocument::OnOpenDocument(lpszPathName))
+	    	return FALSE;*/
+	    DeleteContents();
+	    //SetModifiedFlag();  // dirty during de-serialize
+	    CT2A picName(lpszPathName);
+	    m_Mat=imread(picName.m_psz);
+	    if (m_Mat.data==NULL)
+	    {
+	    	AfxMessageBox(_T("load image failed !"));
+	    }
+	    if (m_Mat.isContinuous())
+	    {
+	    	return TRUE;
+	    }
+	    return FALSE;
+	    
+	    //SetModifiedFlag(FALSE);
+	
+    }
+    
+第一步成功。
+#2.使用MFC在视图显示图片#
+需要利用Mat对象保存的数据来显示，MFC显示位图每个像素并不是3个字节，而是4个，所以，在doc类头文件里，我们增加一个结构定义：
+
+    typedef struct  
+    {
+	  BYTE B;
+	  BYTE G;
+	  BYTE R;
+ 	  BYTE reserved;
+    }BGR4;
+
+然后进行数据扩充，把mat对象data指针指向的矩阵进行复制和补充。
+
+    void CseralizeView::OnDraw(CDC* pDC)
+    {
+    	CseralizeDoc* pDoc = GetDocument();
+    	ASSERT_VALID(pDoc);
+    	if (!pDoc)
+    		return;
+    	if (!pDoc->m_Mat.empty()&&pDoc->m_Mat.isContinuous())
+    	{
+    		UINT cols=pDoc->m_Mat.cols;
+    		UINT rows=pDoc->m_Mat.rows;
+    		BGR4* tempMemory=new BGR4[cols*rows];  //申请内存给扩充后的矩阵
+    		if (tempMemory==NULL)
+    		{
+    			return ;
+    		}
+    		else
+    		{
+    			for (UINT i=0;i<rows;i++)
+    			{
+    				for (UINT j=0;j<cols;j++)
+    				{
+    					tempMemory[i*cols+j].B=pDoc->m_Mat.data[(i*cols+j)*3];
+    					tempMemory[i*cols+j].G=pDoc->m_Mat.data[(i*cols+j)*3+1];
+    					tempMemory[i*cols+j].R=pDoc->m_Mat.data[(i*cols+j)*3+2];
+    					tempMemory[i*cols+j].reserved=0;     //扩充
+    				}
+    			}
+    
+    			CRect clientRect;
+    			GetClientRect(&clientRect);
+    
+    			BITMAP bm={0,cols,rows,4*cols,1,32,tempMemory};   //32=4个字节
+    			
+    
+    			CBitmap show;
+    			show.CreateBitmapIndirect(&bm);
+    
+    			CDC compatibleDC;
+    			compatibleDC.CreateCompatibleDC(pDC);
+    			compatibleDC.SelectObject(&show);
+    
+    			pDC->SetStretchBltMode(HALFTONE);//防止颜色失真
+		    	pDC->StretchBlt(0,0,clientRect.Width(),clientRect.Height(),&compatibleDC,0,0,cols,rows,SRCCOPY);。
+    			delete []tempMemory;
+    		}
+    
+    		
+    	}
+    	
+    	
+    }
+    
+    
+这一步测试也成功了，但是显示窗口的比例不对，第三步调整窗口的长宽比例。
+</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

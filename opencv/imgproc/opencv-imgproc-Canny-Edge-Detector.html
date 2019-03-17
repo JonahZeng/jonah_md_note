@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-Canny Edge Detector</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-Canny Edge Detector</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#Goal
+本节将介绍：
+
+* 使用opencv函数`Canny()`来完成精确边缘侦测；
+
+#Theory
+1. The Canny Edge detector 由John F. Canny在1986年完成. 和许多检测器一样，Canny算法主要为了达成3个目的：
+* 低错误率: 结果应当只对应真实存在的边缘.
+* 准确的位置信息: 被检测到的边缘像素的位置应当尽可能的接近真实边缘位置.
+* 最少的回馈: 每个边缘仅有一个回馈.
+#Steps
+* 降噪，使用高斯模糊，kernel size =5;
+
+$K = \dfrac{1}{159}\begin{bmatrix}
+          2 & 4 & 5 & 4 & 2 \\
+          4 & 9 & 12 & 9 & 4 \\
+          5 & 12 & 15 & 12 & 5 \\
+          4 & 9 & 12 & 9 & 4 \\
+          2 & 4 & 5 & 4 & 2
+                  \end{bmatrix}$
+
+* 找到图像上的梯度. 使用一种类似 Sobel的步骤:
+1. 进行两个方向的卷积操作:
+$G_{x} = \begin{bmatrix}
+-1 & 0 & +1  \\
+-2 & 0 & +2  \\
+-1 & 0 & +1
+\end{bmatrix}$
+
+　$G_{y} = \begin{bmatrix}
+-1 & -2 & -1  \\
+0 & 0 & 0  \\
++1 & +2 & +1
+\end{bmatrix}$
+2. 得到梯度的变化强度和方向:
+$G = \sqrt{ G_{x}^{2} + G_{y}^{2} } $
+$\theta = \arctan(\dfrac{ G_{y} }{ G_{x} })$
+方向被大致分成0, 45, 90 or 135其中的一种；
+
+* 进行干扰消除. 把不是边缘的部分消除，只保留一条细线.
+
+* 磁滞: 最后一步. 使用2个threshold(upper and lower):
+
+1. 如果一个像素的梯度大于upper threshold, 这个像素被判定为边缘；
+2. 如果一个像素的梯度小于lower threshold, 这个像素被排除.
+3. 如果梯度值介于这两个threshold之间， 只有当这个像素和其他梯度大于upper threshold的像素相连时，才会被判定为边缘。
+
+ upper threshold和lower threshold的比值，推荐在2：1到3：1之间；
+#code
+1. 这个程序做什么？
+* 让用户(通过滚动条的方式)输入一个数字用来设定lower threshold;
+* 进行 Canny Detector 然后生成一个掩模图（白色部分代表了被判定为边缘的部分）；
+* 显示结果；
+
+2. code:
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/// Global variables
+
+Mat src, src_gray;
+Mat dst, detected_edges;
+
+int edgeThresh = 1;
+int lowThreshold;
+int const max_lowThreshold = 100;
+int ratio = 3;
+int kernel_size = 3;
+char* window_name = "Edge Map";
+
+/**
+ * @function CannyThreshold
+ * @brief Trackbar callback - Canny thresholds input with a ratio 1:3
+ */
+void CannyThreshold(int, void*)
+{
+  /// Reduce noise with a kernel 3x3
+  blur( src_gray, detected_edges, Size(3,3) );
+
+  /// Canny detector
+  Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*ratio, kernel_size );
+
+  /// Using Canny's output as a mask, we display our result
+  dst = Scalar::all(0);
+
+  src.copyTo( dst, detected_edges);
+  imshow( window_name, dst );
+ }
+
+
+/** @function main */
+int main( int argc, char** argv )
+{
+  /// Load an image
+  src = imread( argv[1] );
+
+  if( !src.data )
+  { return -1; }
+
+  /// Create a matrix of the same type and size as src (for dst)
+  dst.create( src.size(), src.type() );
+
+  /// Convert the image to grayscale
+  cvtColor( src, src_gray, CV_BGR2GRAY );
+
+  /// Create a window
+  namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+
+  /// Create a Trackbar for user to enter threshold
+  createTrackbar( "Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
+
+  /// Show the image
+  CannyThreshold(0, 0);
+
+  /// Wait until user exit program by pressing a key
+  waitKey(0);
+
+  return 0;
+  }
+```
+#Explanation
+1. 创建必须的变量:
+
+        Mat src, src_gray;
+        Mat dst, detected_edges;
+
+        int edgeThresh = 1;
+        int lowThreshold;
+        int const max_lowThreshold = 100;
+        int ratio = 3;
+        int kernel_size = 3;
+        char* window_name = "Edge Map";
+Note the following:
+-  建立upper threshold:lower threshold=3:1 (变量ratio)
+-  kernel size=3 (Canny 函数内部执行sobel操作的时候使用的kernel)
+-  把lower threshold的最大值设成100
+2. 加载图像:
+
+        src = imread( argv[1] );
+
+        if( !src.data )
+        { return -1; }
+3. 创建和源图像类型大小一致的mat : dst
+
+        dst.create( src.size(), src.type() );
+4. 转换成灰度:
+
+        cvtColor( src, src_gray, CV_BGR2GRAY );
+5. 创建显示窗口：
+
+        namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+6. 创建滚动条让用户输入lower threshlod:
+
+        createTrackbar( "Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
+注意:
+- 滚动条控制的是：lower Threshold，最大值是100（全局变量设置了`int const max_lowThreshold = 100;`）
+- 每次滚动条有变化， `CannyThreshold()`将被调用.
+
+7. CannyThreshold()函数:
+  首先，做一次模糊处理，kernel size =3:
+
+        blur( src_gray, detected_edges, Size(3,3) );
+  然后调用opencv函数`Canny()`:
+
+        Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*ratio, kernel_size );
+参数列表:
+- detected_edges: 被转换为灰度的源图像
+- detected_edges: 边缘侦测的输出
+- lowThreshold: lower threshold
+- highThreshold: upper threshold,这个例子里是3倍的lower threshold (following Canny’s recommendation)
+- kernel_size: sobel 操作的kernel size
+8. 清空显示mat:dst
+
+        dst = Scalar::all(0);
+9. 最后，使用函数`copyTo()`把边界像素复制到dst：
+
+        src.copyTo( dst, detected_edges);
+`copyTo()`这个函数被重载，当有2个参数时，首先查看第二个参数，看哪些位置不为0，然后把src上对应位置像素复制到dst； 
+#result
+![](opencv-imgproc-Canny-Edge-Detector_files/5740857cab644141b1017218.png)
+![](opencv-imgproc-Canny-Edge-Detector_files/5740857cab644141b1017217.png)</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#Goal
+本节将介绍：
+
+* 使用opencv函数`Canny()`来完成精确边缘侦测；
+
+#Theory
+1. The Canny Edge detector 由John F. Canny在1986年完成. 和许多检测器一样，Canny算法主要为了达成3个目的：
+* 低错误率: 结果应当只对应真实存在的边缘.
+* 准确的位置信息: 被检测到的边缘像素的位置应当尽可能的接近真实边缘位置.
+* 最少的回馈: 每个边缘仅有一个回馈.
+#Steps
+* 降噪，使用高斯模糊，kernel size =5;
+
+$K = \dfrac{1}{159}\begin{bmatrix}
+          2 & 4 & 5 & 4 & 2 \\
+          4 & 9 & 12 & 9 & 4 \\
+          5 & 12 & 15 & 12 & 5 \\
+          4 & 9 & 12 & 9 & 4 \\
+          2 & 4 & 5 & 4 & 2
+                  \end{bmatrix}$
+
+* 找到图像上的梯度. 使用一种类似 Sobel的步骤:
+1. 进行两个方向的卷积操作:
+$G_{x} = \begin{bmatrix}
+-1 & 0 & +1  \\
+-2 & 0 & +2  \\
+-1 & 0 & +1
+\end{bmatrix}$
+
+　$G_{y} = \begin{bmatrix}
+-1 & -2 & -1  \\
+0 & 0 & 0  \\
++1 & +2 & +1
+\end{bmatrix}$
+2. 得到梯度的变化强度和方向:
+$G = \sqrt{ G_{x}^{2} + G_{y}^{2} } $
+$\theta = \arctan(\dfrac{ G_{y} }{ G_{x} })$
+方向被大致分成0, 45, 90 or 135其中的一种；
+
+* 进行干扰消除. 把不是边缘的部分消除，只保留一条细线.
+
+* 磁滞: 最后一步. 使用2个threshold(upper and lower):
+
+1. 如果一个像素的梯度大于upper threshold, 这个像素被判定为边缘；
+2. 如果一个像素的梯度小于lower threshold, 这个像素被排除.
+3. 如果梯度值介于这两个threshold之间， 只有当这个像素和其他梯度大于upper threshold的像素相连时，才会被判定为边缘。
+
+ upper threshold和lower threshold的比值，推荐在2：1到3：1之间；
+#code
+1. 这个程序做什么？
+* 让用户(通过滚动条的方式)输入一个数字用来设定lower threshold;
+* 进行 Canny Detector 然后生成一个掩模图（白色部分代表了被判定为边缘的部分）；
+* 显示结果；
+
+2. code:
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/// Global variables
+
+Mat src, src_gray;
+Mat dst, detected_edges;
+
+int edgeThresh = 1;
+int lowThreshold;
+int const max_lowThreshold = 100;
+int ratio = 3;
+int kernel_size = 3;
+char* window_name = "Edge Map";
+
+/**
+ * @function CannyThreshold
+ * @brief Trackbar callback - Canny thresholds input with a ratio 1:3
+ */
+void CannyThreshold(int, void*)
+{
+  /// Reduce noise with a kernel 3x3
+  blur( src_gray, detected_edges, Size(3,3) );
+
+  /// Canny detector
+  Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*ratio, kernel_size );
+
+  /// Using Canny's output as a mask, we display our result
+  dst = Scalar::all(0);
+
+  src.copyTo( dst, detected_edges);
+  imshow( window_name, dst );
+ }
+
+
+/** @function main */
+int main( int argc, char** argv )
+{
+  /// Load an image
+  src = imread( argv[1] );
+
+  if( !src.data )
+  { return -1; }
+
+  /// Create a matrix of the same type and size as src (for dst)
+  dst.create( src.size(), src.type() );
+
+  /// Convert the image to grayscale
+  cvtColor( src, src_gray, CV_BGR2GRAY );
+
+  /// Create a window
+  namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+
+  /// Create a Trackbar for user to enter threshold
+  createTrackbar( "Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
+
+  /// Show the image
+  CannyThreshold(0, 0);
+
+  /// Wait until user exit program by pressing a key
+  waitKey(0);
+
+  return 0;
+  }
+```
+#Explanation
+1. 创建必须的变量:
+
+        Mat src, src_gray;
+        Mat dst, detected_edges;
+
+        int edgeThresh = 1;
+        int lowThreshold;
+        int const max_lowThreshold = 100;
+        int ratio = 3;
+        int kernel_size = 3;
+        char* window_name = "Edge Map";
+Note the following:
+-  建立upper threshold:lower threshold=3:1 (变量ratio)
+-  kernel size=3 (Canny 函数内部执行sobel操作的时候使用的kernel)
+-  把lower threshold的最大值设成100
+2. 加载图像:
+
+        src = imread( argv[1] );
+
+        if( !src.data )
+        { return -1; }
+3. 创建和源图像类型大小一致的mat : dst
+
+        dst.create( src.size(), src.type() );
+4. 转换成灰度:
+
+        cvtColor( src, src_gray, CV_BGR2GRAY );
+5. 创建显示窗口：
+
+        namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+6. 创建滚动条让用户输入lower threshlod:
+
+        createTrackbar( "Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
+注意:
+- 滚动条控制的是：lower Threshold，最大值是100（全局变量设置了`int const max_lowThreshold = 100;`）
+- 每次滚动条有变化， `CannyThreshold()`将被调用.
+
+7. CannyThreshold()函数:
+  首先，做一次模糊处理，kernel size =3:
+
+        blur( src_gray, detected_edges, Size(3,3) );
+  然后调用opencv函数`Canny()`:
+
+        Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*ratio, kernel_size );
+参数列表:
+- detected_edges: 被转换为灰度的源图像
+- detected_edges: 边缘侦测的输出
+- lowThreshold: lower threshold
+- highThreshold: upper threshold,这个例子里是3倍的lower threshold (following Canny’s recommendation)
+- kernel_size: sobel 操作的kernel size
+8. 清空显示mat:dst
+
+        dst = Scalar::all(0);
+9. 最后，使用函数`copyTo()`把边界像素复制到dst：
+
+        src.copyTo( dst, detected_edges);
+`copyTo()`这个函数被重载，当有2个参数时，首先查看第二个参数，看哪些位置不为0，然后把src上对应位置像素复制到dst； 
+#result
+![](opencv-imgproc-Canny-Edge-Detector_files/5740857cab644141b1017218.png)
+![](opencv-imgproc-Canny-Edge-Detector_files/5740857cab644141b1017217.png)</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

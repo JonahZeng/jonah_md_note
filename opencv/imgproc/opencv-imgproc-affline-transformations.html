@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-affline transformations</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-affline transformations</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#Goal
+本节介绍：
+
+* 使用OpenCV 函数`warpAffine()` 完成简单重映射程序.
+* 使用OpenCV 函数`getRotationMatrix2D()` 获取 $2 \times 3$ 旋转矩阵.
+#theory
+##什么是Affine Transformation ？
+1. 所有的变换都可以表示为： 和一个矩阵相乘（线型变换），然后再加一个向量
+2. 从以上表达可以知道，Affine Transformation可以用于表达:
+* Rotations (linear transformation)
+* Translations (vector addition)
+* Scale operations (linear transformation)
+
+ 你可能已经知道，从本质上讲, an Affine Transformation描述了两个图像之间的位置关系；
+3. 常用与描述 an Affine Transform 的方法是使用 $2 \times 3$ 矩阵.
+　　　　![](opencv-imgproc-affline-transformations_files/574a90fcab64413fd7020db9.png)
+考虑一下：我们要对一个向量2D vector $X = \begin{bmatrix}x \\ y\end{bmatrix}$进行变换，使用矩阵A和向量B； 所以我们可以这样表述：
+$T = A \cdot \begin{bmatrix}x \\ y\end{bmatrix} + B$ or $ T = M \cdot  [x, y, 1]^{T}$
+$T =  \begin{bmatrix}
+    a_{00}x + a_{01}y + b_{00} \\
+    a_{10}x + a_{11}y + b_{10}
+    \end{bmatrix}$
+##How do we get an Affine Transformation ?
+1. 我们提到过Affine Transformation 描述了两个图像的像素点位置映射关系. 我们可以粗略的分为两种情况：
+a. $X$ 和 $T$ 已知，我们的工作是计算出M：映射关系。
+b. $M$ 和 $X$已知。应用映射关系$M$得到$T$：$T = M \cdot X$. $M$ 可能是显式的比如直接告诉你M是一个$2\times3$矩阵 或者是隐式的，比如告诉你两个图像的点的映射关系；
+2. 详细点解释b：因为M代表了2个图像的位置映射关系，举个最简单的例子，我们知道2个图像的3个点的映射关系：
+　　　　![](opencv-imgproc-affline-transformations_files/574af40bab644141b1020d14.png)
+点1，2，3在图像1中组成了一个三角形，映射到图像2时仍然还是组成一个三角形，利用这三个点的坐标, 就可以计算得到Affine Transformation ,然后就可以把这个映射关系作用到所有的像素上了；
+
+#Code
+1. 这个程序执行哪些动作?
+* 加载图像
+* 对该图像应用Affine Transform. 从3个点的映射关系计算得到Affine Transform. 使用函数`warpAffine()` 来做这件事.
+* 图像变形后进行旋转操作.旋转围绕图像中心进行
+* 等待用户结束程序
+2. 代码如下：
+
+        #include "opencv2/highgui/highgui.hpp"
+        #include "opencv2/imgproc/imgproc.hpp"
+        #include <iostream>
+        #include <stdio.h>
+        
+        using namespace cv;
+        using namespace std;
+        
+        /// Global variables
+        char* source_window = "Source image";
+        char* warp_window = "Warp";
+        char* warp_rotate_window = "Warp + Rotate";
+        
+        /** @function main */
+         int main( int argc, char** argv )
+         {
+           Point2f srcTri[3];
+           Point2f dstTri[3];
+        
+           Mat rot_mat( 2, 3, CV_32FC1 );
+           Mat warp_mat( 2, 3, CV_32FC1 );
+           Mat src, warp_dst, warp_rotate_dst;
+        
+           /// Load the image
+           src = imread( argv[1], 1 );
+        
+           /// Set the dst image the same type and size as src
+           warp_dst = Mat::zeros( src.rows, src.cols, src.type() );
+        
+           /// Set your 3 points to calculate the  Affine Transform
+           srcTri[0] = Point2f( 0,0 );
+           srcTri[1] = Point2f( src.cols - 1, 0 );
+           srcTri[2] = Point2f( 0, src.rows - 1 );
+        
+           dstTri[0] = Point2f( src.cols*0.0, src.rows*0.33 );
+           dstTri[1] = Point2f( src.cols*0.85, src.rows*0.25 );
+           dstTri[2] = Point2f( src.cols*0.15, src.rows*0.7 );
+        
+           /// Get the Affine Transform
+           warp_mat = getAffineTransform( srcTri, dstTri );
+        
+           /// Apply the Affine Transform just found to the src image
+           warpAffine( src, warp_dst, warp_mat, warp_dst.size() );
+        
+           /** Rotating the image after Warp */
+        
+           /// Compute a rotation matrix with respect to the center of the image
+           Point center = Point( warp_dst.cols/2, warp_dst.rows/2 );
+           double angle = -50.0;
+           double scale = 0.6;
+        
+           /// Get the rotation matrix with the specifications above
+           rot_mat = getRotationMatrix2D( center, angle, scale );
+        
+           /// Rotate the warped image
+           warpAffine( warp_dst, warp_rotate_dst, rot_mat, warp_dst.size() );
+        
+           /// Show what you got
+           namedWindow( source_window, CV_WINDOW_AUTOSIZE );
+           imshow( source_window, src );
+        
+           namedWindow( warp_window, CV_WINDOW_AUTOSIZE );
+           imshow( warp_window, warp_dst );
+        
+           namedWindow( warp_rotate_window, CV_WINDOW_AUTOSIZE );
+           imshow( warp_rotate_window, warp_rotate_dst );
+        
+           /// Wait until user exits the program
+           waitKey(0);
+        
+           return 0;
+          }     
+#explanation
+
+1. 声明一些后面需要用到的变量，比如2个用于存储用于定义 Affine Transform的点坐标数组.
+
+            Point2f srcTri[3];
+            Point2f dstTri[3];
+
+            Mat rot_mat( 2, 3, CV_32FC1 );
+            Mat warp_mat( 2, 3, CV_32FC1 );
+            Mat src, warp_dst, warp_rotate_dst;
+
+2. 加载图像:
+
+        src = imread( argv[1], 1 );
+3. 初始化输出mat为与源图像相同类型相同大小:
+
+        warp_dst = Mat::zeros( src.rows, src.cols, src.type() );
+4. **Affine Transform**: 如上面的解释那样, 我们需要3个点来获取affine transform 映射关系. 
+
+        srcTri[0] = Point2f( 0,0 );
+        srcTri[1] = Point2f( src.cols - 1, 0 );
+        srcTri[2] = Point2f( 0, src.rows - 1 );
+        
+        dstTri[0] = Point2f( src.cols*0.0, src.rows*0.33 );
+        dstTri[1] = Point2f( src.cols*0.85, src.rows*0.25 );
+        dstTri[2] = Point2f( src.cols*0.15, src.rows*0.7 );
+这里这个例子的转换关系和theory章节介绍的基本一致；
+5. 使用函数：`getAffineTransform( srcTri, dstTri )`获取矩阵$M$
+
+        warp_mat = getAffineTransform( srcTri, dstTri );
+这样我们就获得了一个$2 \times 3$ 矩阵；
+6.在源图像上应用Affine Transform 
+
+        warpAffine( src, warp_dst, warp_mat, warp_dst.size() );
+        with the following arguments:
+参数列表：
+* src: 源图像
+* warp_dst: 输出结果图像
+* warp_mat: Affine transform矩阵
+* warp_dst.size(): 输出图像的大小
+在显示之前，我们再进行一步操作：旋转
+7. **旋转**: 我们首先要知道2件事
+a. 围绕哪个中心点旋转
+b. 旋转的角度. 在OpenCV中 正的角度代表逆时针旋转
+c. Optional: 缩放因子
+所以我们定义如下3个参数:
+
+        Point center = Point( warp_dst.cols/2, warp_dst.rows/2 );
+        double angle = -50.0;
+        double scale = 0.6;
+8. 利用函数`getRotationMatrix2D`获取旋转矩阵, 这个函数返回一个 $2 \times 3$ 矩阵
+
+        rot_mat = getRotationMatrix2D( center, angle, scale );
+9. 现在对之前的变形图像进行旋转操作.
+
+        warpAffine( warp_dst, warp_rotate_dst, rot_mat, warp_dst.size() );
+10. 显示结果:
+
+        namedWindow( source_window, CV_WINDOW_AUTOSIZE );
+        imshow( source_window, src );
+
+        namedWindow( warp_window, CV_WINDOW_AUTOSIZE );
+        imshow( warp_window, warp_dst );
+
+        namedWindow( warp_rotate_window, CV_WINDOW_AUTOSIZE );
+        imshow( warp_rotate_window, warp_rotate_dst );
+#result
+![](opencv-imgproc-affline-transformations_files/574af40bab644141b1020d13.png)
+![](opencv-imgproc-affline-transformations_files/574af40bab644141b1020d15.png)
+![](opencv-imgproc-affline-transformations_files/574af40bab644141b1020d12.png)</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#Goal
+本节介绍：
+
+* 使用OpenCV 函数`warpAffine()` 完成简单重映射程序.
+* 使用OpenCV 函数`getRotationMatrix2D()` 获取 $2 \times 3$ 旋转矩阵.
+#theory
+##什么是Affine Transformation ？
+1. 所有的变换都可以表示为： 和一个矩阵相乘（线型变换），然后再加一个向量
+2. 从以上表达可以知道，Affine Transformation可以用于表达:
+* Rotations (linear transformation)
+* Translations (vector addition)
+* Scale operations (linear transformation)
+
+ 你可能已经知道，从本质上讲, an Affine Transformation描述了两个图像之间的位置关系；
+3. 常用与描述 an Affine Transform 的方法是使用 $2 \times 3$ 矩阵.
+　　　　![](opencv-imgproc-affline-transformations_files/574a90fcab64413fd7020db9.png)
+考虑一下：我们要对一个向量2D vector $X = \begin{bmatrix}x \\ y\end{bmatrix}$进行变换，使用矩阵A和向量B； 所以我们可以这样表述：
+$T = A \cdot \begin{bmatrix}x \\ y\end{bmatrix} + B$ or $ T = M \cdot  [x, y, 1]^{T}$
+$T =  \begin{bmatrix}
+    a_{00}x + a_{01}y + b_{00} \\
+    a_{10}x + a_{11}y + b_{10}
+    \end{bmatrix}$
+##How do we get an Affine Transformation ?
+1. 我们提到过Affine Transformation 描述了两个图像的像素点位置映射关系. 我们可以粗略的分为两种情况：
+a. $X$ 和 $T$ 已知，我们的工作是计算出M：映射关系。
+b. $M$ 和 $X$已知。应用映射关系$M$得到$T$：$T = M \cdot X$. $M$ 可能是显式的比如直接告诉你M是一个$2\times3$矩阵 或者是隐式的，比如告诉你两个图像的点的映射关系；
+2. 详细点解释b：因为M代表了2个图像的位置映射关系，举个最简单的例子，我们知道2个图像的3个点的映射关系：
+　　　　![](opencv-imgproc-affline-transformations_files/574af40bab644141b1020d14.png)
+点1，2，3在图像1中组成了一个三角形，映射到图像2时仍然还是组成一个三角形，利用这三个点的坐标, 就可以计算得到Affine Transformation ,然后就可以把这个映射关系作用到所有的像素上了；
+
+#Code
+1. 这个程序执行哪些动作?
+* 加载图像
+* 对该图像应用Affine Transform. 从3个点的映射关系计算得到Affine Transform. 使用函数`warpAffine()` 来做这件事.
+* 图像变形后进行旋转操作.旋转围绕图像中心进行
+* 等待用户结束程序
+2. 代码如下：
+
+        #include "opencv2/highgui/highgui.hpp"
+        #include "opencv2/imgproc/imgproc.hpp"
+        #include <iostream>
+        #include <stdio.h>
+        
+        using namespace cv;
+        using namespace std;
+        
+        /// Global variables
+        char* source_window = "Source image";
+        char* warp_window = "Warp";
+        char* warp_rotate_window = "Warp + Rotate";
+        
+        /** @function main */
+         int main( int argc, char** argv )
+         {
+           Point2f srcTri[3];
+           Point2f dstTri[3];
+        
+           Mat rot_mat( 2, 3, CV_32FC1 );
+           Mat warp_mat( 2, 3, CV_32FC1 );
+           Mat src, warp_dst, warp_rotate_dst;
+        
+           /// Load the image
+           src = imread( argv[1], 1 );
+        
+           /// Set the dst image the same type and size as src
+           warp_dst = Mat::zeros( src.rows, src.cols, src.type() );
+        
+           /// Set your 3 points to calculate the  Affine Transform
+           srcTri[0] = Point2f( 0,0 );
+           srcTri[1] = Point2f( src.cols - 1, 0 );
+           srcTri[2] = Point2f( 0, src.rows - 1 );
+        
+           dstTri[0] = Point2f( src.cols*0.0, src.rows*0.33 );
+           dstTri[1] = Point2f( src.cols*0.85, src.rows*0.25 );
+           dstTri[2] = Point2f( src.cols*0.15, src.rows*0.7 );
+        
+           /// Get the Affine Transform
+           warp_mat = getAffineTransform( srcTri, dstTri );
+        
+           /// Apply the Affine Transform just found to the src image
+           warpAffine( src, warp_dst, warp_mat, warp_dst.size() );
+        
+           /** Rotating the image after Warp */
+        
+           /// Compute a rotation matrix with respect to the center of the image
+           Point center = Point( warp_dst.cols/2, warp_dst.rows/2 );
+           double angle = -50.0;
+           double scale = 0.6;
+        
+           /// Get the rotation matrix with the specifications above
+           rot_mat = getRotationMatrix2D( center, angle, scale );
+        
+           /// Rotate the warped image
+           warpAffine( warp_dst, warp_rotate_dst, rot_mat, warp_dst.size() );
+        
+           /// Show what you got
+           namedWindow( source_window, CV_WINDOW_AUTOSIZE );
+           imshow( source_window, src );
+        
+           namedWindow( warp_window, CV_WINDOW_AUTOSIZE );
+           imshow( warp_window, warp_dst );
+        
+           namedWindow( warp_rotate_window, CV_WINDOW_AUTOSIZE );
+           imshow( warp_rotate_window, warp_rotate_dst );
+        
+           /// Wait until user exits the program
+           waitKey(0);
+        
+           return 0;
+          }     
+#explanation
+
+1. 声明一些后面需要用到的变量，比如2个用于存储用于定义 Affine Transform的点坐标数组.
+
+            Point2f srcTri[3];
+            Point2f dstTri[3];
+
+            Mat rot_mat( 2, 3, CV_32FC1 );
+            Mat warp_mat( 2, 3, CV_32FC1 );
+            Mat src, warp_dst, warp_rotate_dst;
+
+2. 加载图像:
+
+        src = imread( argv[1], 1 );
+3. 初始化输出mat为与源图像相同类型相同大小:
+
+        warp_dst = Mat::zeros( src.rows, src.cols, src.type() );
+4. **Affine Transform**: 如上面的解释那样, 我们需要3个点来获取affine transform 映射关系. 
+
+        srcTri[0] = Point2f( 0,0 );
+        srcTri[1] = Point2f( src.cols - 1, 0 );
+        srcTri[2] = Point2f( 0, src.rows - 1 );
+        
+        dstTri[0] = Point2f( src.cols*0.0, src.rows*0.33 );
+        dstTri[1] = Point2f( src.cols*0.85, src.rows*0.25 );
+        dstTri[2] = Point2f( src.cols*0.15, src.rows*0.7 );
+这里这个例子的转换关系和theory章节介绍的基本一致；
+5. 使用函数：`getAffineTransform( srcTri, dstTri )`获取矩阵$M$
+
+        warp_mat = getAffineTransform( srcTri, dstTri );
+这样我们就获得了一个$2 \times 3$ 矩阵；
+6.在源图像上应用Affine Transform 
+
+        warpAffine( src, warp_dst, warp_mat, warp_dst.size() );
+        with the following arguments:
+参数列表：
+* src: 源图像
+* warp_dst: 输出结果图像
+* warp_mat: Affine transform矩阵
+* warp_dst.size(): 输出图像的大小
+在显示之前，我们再进行一步操作：旋转
+7. **旋转**: 我们首先要知道2件事
+a. 围绕哪个中心点旋转
+b. 旋转的角度. 在OpenCV中 正的角度代表逆时针旋转
+c. Optional: 缩放因子
+所以我们定义如下3个参数:
+
+        Point center = Point( warp_dst.cols/2, warp_dst.rows/2 );
+        double angle = -50.0;
+        double scale = 0.6;
+8. 利用函数`getRotationMatrix2D`获取旋转矩阵, 这个函数返回一个 $2 \times 3$ 矩阵
+
+        rot_mat = getRotationMatrix2D( center, angle, scale );
+9. 现在对之前的变形图像进行旋转操作.
+
+        warpAffine( warp_dst, warp_rotate_dst, rot_mat, warp_dst.size() );
+10. 显示结果:
+
+        namedWindow( source_window, CV_WINDOW_AUTOSIZE );
+        imshow( source_window, src );
+
+        namedWindow( warp_window, CV_WINDOW_AUTOSIZE );
+        imshow( warp_window, warp_dst );
+
+        namedWindow( warp_rotate_window, CV_WINDOW_AUTOSIZE );
+        imshow( warp_rotate_window, warp_rotate_dst );
+#result
+![](opencv-imgproc-affline-transformations_files/574af40bab644141b1020d13.png)
+![](opencv-imgproc-affline-transformations_files/574af40bab644141b1020d15.png)
+![](opencv-imgproc-affline-transformations_files/574af40bab644141b1020d12.png)</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

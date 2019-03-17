@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-拉普拉斯操作</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-拉普拉斯操作</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#gola
+本节内容：
+
+* 使用opencv函数 `Laplacian()` 完成离散拉普拉斯操作；
+#theory
+1. 前一节我们学习了如何做sobel操作。它是基于：边缘区域的像素值有一个跳变。计算像素值函数的一阶导数 ，我们注意到边缘像素的一阶导数是该区域的最大值：
+![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170ef.png)
+
+2. 那么，如果我们计算二阶导数呢？
+![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170f0.png)
+你可以看到，边缘点的二阶导数为0！所以，我们可以利用这一点来侦测边缘。但是，二阶导数为0 的点并不一定就是边缘； this can be solved by applying filtering where needed.
+
+#Laplacian Operator
+* 从以上的解释可以知道，我们可以通过计算二阶导数来进行边缘侦测。因为图像是二维的，我们需要在2个维度上都进行导数计算；
+* 拉普拉斯操作的定义:
+　　　　![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170f1.png)
+* 拉普拉斯操作有opencv函数`Laplacian()`完成. 事实上, 因为拉普拉斯操作使用了图像的梯度，在这个函数内部，它仍然还是会调用soble操作；
+#code
+1. 这个程序做什么？
+* 加载图像；
+* 使用高斯模糊进行降噪，然后转换成灰度；
+* 对灰度图进行拉普拉斯操作，然后保存输出；
+* 显示输出；
+2. 代码如下：
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/** @function main */
+int main( int argc, char** argv )
+{
+  Mat src, src_gray, dst;
+  int kernel_size = 3;
+  int scale = 1;
+  int delta = 0;
+  int ddepth = CV_16S;
+  char* window_name = "Laplace Demo";
+
+  int c;
+
+  /// Load an image
+  src = imread( argv[1] );
+
+  if( !src.data )
+    { return -1; }
+
+  /// Remove noise by blurring with a Gaussian filter
+  GaussianBlur( src, src, Size(3,3), 0, 0, BORDER_DEFAULT );
+
+  /// Convert the image to grayscale
+  cvtColor( src, src_gray, CV_RGB2GRAY );
+
+  /// Create window
+  namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+
+  /// Apply Laplace function
+  Mat abs_dst;
+
+  Laplacian( src_gray, dst, ddepth, kernel_size, scale, delta, BORDER_DEFAULT );
+  convertScaleAbs( dst, abs_dst );
+
+  /// Show what you got
+  imshow( window_name, abs_dst );
+
+  waitKey(0);
+
+  return 0;
+  }
+```
+#explanation
+* 高斯模糊：
+
+        GaussianBlur( src, src, Size(3,3), 0, 0, BORDER_DEFAULT );
+* 灰度转换：
+
+        cvtColor( src, src_gray, CV_RGB2GRAY );
+* 应用拉普拉斯操作：
+
+        Laplacian( src_gray, dst, ddepth, kernel_size, scale, delta, BORDER_DEFAULT );
+参数如下
+1. src_gray: 源图像.
+2. dst: 输出图像
+3. ddepth: 目标输出图像位深度. 因为最终输出是CV-8U,这里定义为CV_16S避免溢出；
+4. kernel_size: soble操作内的kernel大小，这个例子使用kernel size=3;
+5. scale, delta and BORDER_DEFAULT: 使用默认值；
+
+* 转换成CV_8U:
+
+        convertScaleAbs( dst, abs_dst );
+* 显示结果:
+
+        imshow( window_name, abs_dst );
+        
+#result
+![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170ee.png)
+![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170ed.png)</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#gola
+本节内容：
+
+* 使用opencv函数 `Laplacian()` 完成离散拉普拉斯操作；
+#theory
+1. 前一节我们学习了如何做sobel操作。它是基于：边缘区域的像素值有一个跳变。计算像素值函数的一阶导数 ，我们注意到边缘像素的一阶导数是该区域的最大值：
+![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170ef.png)
+
+2. 那么，如果我们计算二阶导数呢？
+![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170f0.png)
+你可以看到，边缘点的二阶导数为0！所以，我们可以利用这一点来侦测边缘。但是，二阶导数为0 的点并不一定就是边缘； this can be solved by applying filtering where needed.
+
+#Laplacian Operator
+* 从以上的解释可以知道，我们可以通过计算二阶导数来进行边缘侦测。因为图像是二维的，我们需要在2个维度上都进行导数计算；
+* 拉普拉斯操作的定义:
+　　　　![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170f1.png)
+* 拉普拉斯操作有opencv函数`Laplacian()`完成. 事实上, 因为拉普拉斯操作使用了图像的梯度，在这个函数内部，它仍然还是会调用soble操作；
+#code
+1. 这个程序做什么？
+* 加载图像；
+* 使用高斯模糊进行降噪，然后转换成灰度；
+* 对灰度图进行拉普拉斯操作，然后保存输出；
+* 显示输出；
+2. 代码如下：
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/** @function main */
+int main( int argc, char** argv )
+{
+  Mat src, src_gray, dst;
+  int kernel_size = 3;
+  int scale = 1;
+  int delta = 0;
+  int ddepth = CV_16S;
+  char* window_name = "Laplace Demo";
+
+  int c;
+
+  /// Load an image
+  src = imread( argv[1] );
+
+  if( !src.data )
+    { return -1; }
+
+  /// Remove noise by blurring with a Gaussian filter
+  GaussianBlur( src, src, Size(3,3), 0, 0, BORDER_DEFAULT );
+
+  /// Convert the image to grayscale
+  cvtColor( src, src_gray, CV_RGB2GRAY );
+
+  /// Create window
+  namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+
+  /// Apply Laplace function
+  Mat abs_dst;
+
+  Laplacian( src_gray, dst, ddepth, kernel_size, scale, delta, BORDER_DEFAULT );
+  convertScaleAbs( dst, abs_dst );
+
+  /// Show what you got
+  imshow( window_name, abs_dst );
+
+  waitKey(0);
+
+  return 0;
+  }
+```
+#explanation
+* 高斯模糊：
+
+        GaussianBlur( src, src, Size(3,3), 0, 0, BORDER_DEFAULT );
+* 灰度转换：
+
+        cvtColor( src, src_gray, CV_RGB2GRAY );
+* 应用拉普拉斯操作：
+
+        Laplacian( src_gray, dst, ddepth, kernel_size, scale, delta, BORDER_DEFAULT );
+参数如下
+1. src_gray: 源图像.
+2. dst: 输出图像
+3. ddepth: 目标输出图像位深度. 因为最终输出是CV-8U,这里定义为CV_16S避免溢出；
+4. kernel_size: soble操作内的kernel大小，这个例子使用kernel size=3;
+5. scale, delta and BORDER_DEFAULT: 使用默认值；
+
+* 转换成CV_8U:
+
+        convertScaleAbs( dst, abs_dst );
+* 显示结果:
+
+        imshow( window_name, abs_dst );
+        
+#result
+![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170ee.png)
+![](opencv-imgproc-拉普拉斯操作_files/574067efab644141b10170ed.png)</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

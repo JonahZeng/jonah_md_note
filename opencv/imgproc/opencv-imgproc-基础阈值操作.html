@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-基础阈值操作</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-基础阈值操作</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#**theory**#
+---------------------------
+##什么是阈值##
+* 最简单的图像分割方法；
+* 应用示例：把我们想得到的主体从背景中分离出来；
+* 为了把感兴趣的部分分离出来，我们执行一个比较操作：把每一个像素的像素值与一个threshold做比较；
+* 一单我们得到了合适的像素区域，我们可以把这些像素设置为一个特定的值来标记；
+![](opencv-imgproc-基础阈值操作_files/57384ec2ab644141b100f93c.png)
+##阈值的种类##
+* OpenCV 提供函数 `threshold()`来执行阈值操作；
+* 这个函数可以执行5种不同的阈值操作；
+* 为了展示这些阈值操作是如何进行的，首先联想一下：我们有一个源图像，它的像素值用函数$src(x,y)$表示；如下图所示，蓝色水平线表示threshold；
+![](opencv-imgproc-基础阈值操作_files/57384ec2ab644141b100f93b.png)
+
+##Threshold Binary##
+这种阈值操作可以表达成：
+![](opencv-imgproc-基础阈值操作_files/57384ec2ab644141b100f93a.png)
+
+如果$src(x,y)$的值大于阈值，则被设置成maxValue,否则设成0；
+结果变成：
+　　![](opencv-imgproc-基础阈值操作_files/57384ec2ab644141b100f93d.png)
+##Threshold Binary, Inverted##
+* 和第一种阈值结果相反：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae2.png)
+
+##Truncate##
+* 表达式：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae6.png)
+* 结果：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae3.png)
+
+##Threshold to Zero##
+* 表达式：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae0.png)
+* 结果：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae4.png)
+
+##Threshold to Zero, Inverted##
+* 表达式：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fade.png)
+* 结果：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae1.png)
+
+#**code**#
+--------------------
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/// Global variables
+
+int threshold_value = 0;
+int threshold_type = 3;;
+int const max_value = 255;
+int const max_type = 4;
+int const max_BINARY_value = 255;
+
+Mat src, src_gray, dst;
+char* window_name = "Threshold Demo";
+
+char* trackbar_type = "Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero Inverted";
+char* trackbar_value = "Value";
+
+/// Function headers
+void Threshold_Demo( int, void* );
+
+/**
+ * @function main
+ */
+int main( int argc, char** argv )
+{
+  /// Load an image
+  src = imread( argv[1], 1 );   //去读图像
+
+  /// 转换成灰度
+  cvtColor( src, src_gray, CV_RGB2GRAY );
+
+  /// 创建窗口显示结果
+  namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+
+  /// 创建2个滚动条用于选择threshold 类型和 threshold值
+  createTrackbar( trackbar_type,
+                  window_name, &threshold_type,
+                  max_type, Threshold_Demo );
+
+  createTrackbar( trackbar_value,
+                  window_name, &threshold_value,
+                  max_value, Threshold_Demo );
+
+  /// 初始值显示结果
+  Threshold_Demo( 0, 0 );
+
+  //等待用户按键退出程序
+  while(true)
+  {
+    int c;
+    c = waitKey( 20 );
+    if( (char)c == 27 )
+      { break; }
+   }
+
+}
+
+
+/**
+ * @function Threshold_Demo
+ */
+void Threshold_Demo( int, void* )
+{
+  /* 0: Binary
+     1: Binary Inverted
+     2: Threshold Truncated
+     3: Threshold to Zero
+     4: Threshold to Zero Inverted
+   */
+
+  threshold( src_gray, dst, threshold_value, max_BINARY_value,threshold_type );
+  
+  imshow( window_name, dst );
+}
+```
+#explanation#
+`threshold()`有5个参数：
+
+* src_gray: 输入图像
+* dst: 输出图像
+* threshold_value: 阈值大小
+* max_BINARY_value: 用于设定哪些像素参与运算
+* threshold_type: 上述列举的5种类型，任选一种
+#结果#
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae7.png)
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae5.png)
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fadf.png)</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#**theory**#
+---------------------------
+##什么是阈值##
+* 最简单的图像分割方法；
+* 应用示例：把我们想得到的主体从背景中分离出来；
+* 为了把感兴趣的部分分离出来，我们执行一个比较操作：把每一个像素的像素值与一个threshold做比较；
+* 一单我们得到了合适的像素区域，我们可以把这些像素设置为一个特定的值来标记；
+![](opencv-imgproc-基础阈值操作_files/57384ec2ab644141b100f93c.png)
+##阈值的种类##
+* OpenCV 提供函数 `threshold()`来执行阈值操作；
+* 这个函数可以执行5种不同的阈值操作；
+* 为了展示这些阈值操作是如何进行的，首先联想一下：我们有一个源图像，它的像素值用函数$src(x,y)$表示；如下图所示，蓝色水平线表示threshold；
+![](opencv-imgproc-基础阈值操作_files/57384ec2ab644141b100f93b.png)
+
+##Threshold Binary##
+这种阈值操作可以表达成：
+![](opencv-imgproc-基础阈值操作_files/57384ec2ab644141b100f93a.png)
+
+如果$src(x,y)$的值大于阈值，则被设置成maxValue,否则设成0；
+结果变成：
+　　![](opencv-imgproc-基础阈值操作_files/57384ec2ab644141b100f93d.png)
+##Threshold Binary, Inverted##
+* 和第一种阈值结果相反：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae2.png)
+
+##Truncate##
+* 表达式：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae6.png)
+* 结果：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae3.png)
+
+##Threshold to Zero##
+* 表达式：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae0.png)
+* 结果：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae4.png)
+
+##Threshold to Zero, Inverted##
+* 表达式：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fade.png)
+* 结果：
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae1.png)
+
+#**code**#
+--------------------
+```
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace cv;
+
+/// Global variables
+
+int threshold_value = 0;
+int threshold_type = 3;;
+int const max_value = 255;
+int const max_type = 4;
+int const max_BINARY_value = 255;
+
+Mat src, src_gray, dst;
+char* window_name = "Threshold Demo";
+
+char* trackbar_type = "Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero Inverted";
+char* trackbar_value = "Value";
+
+/// Function headers
+void Threshold_Demo( int, void* );
+
+/**
+ * @function main
+ */
+int main( int argc, char** argv )
+{
+  /// Load an image
+  src = imread( argv[1], 1 );   //去读图像
+
+  /// 转换成灰度
+  cvtColor( src, src_gray, CV_RGB2GRAY );
+
+  /// 创建窗口显示结果
+  namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+
+  /// 创建2个滚动条用于选择threshold 类型和 threshold值
+  createTrackbar( trackbar_type,
+                  window_name, &threshold_type,
+                  max_type, Threshold_Demo );
+
+  createTrackbar( trackbar_value,
+                  window_name, &threshold_value,
+                  max_value, Threshold_Demo );
+
+  /// 初始值显示结果
+  Threshold_Demo( 0, 0 );
+
+  //等待用户按键退出程序
+  while(true)
+  {
+    int c;
+    c = waitKey( 20 );
+    if( (char)c == 27 )
+      { break; }
+   }
+
+}
+
+
+/**
+ * @function Threshold_Demo
+ */
+void Threshold_Demo( int, void* )
+{
+  /* 0: Binary
+     1: Binary Inverted
+     2: Threshold Truncated
+     3: Threshold to Zero
+     4: Threshold to Zero Inverted
+   */
+
+  threshold( src_gray, dst, threshold_value, max_BINARY_value,threshold_type );
+  
+  imshow( window_name, dst );
+}
+```
+#explanation#
+`threshold()`有5个参数：
+
+* src_gray: 输入图像
+* dst: 输出图像
+* threshold_value: 阈值大小
+* max_BINARY_value: 用于设定哪些像素参与运算
+* threshold_type: 上述列举的5种类型，任选一种
+#结果#
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae7.png)
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fae5.png)
+![](opencv-imgproc-基础阈值操作_files/573856afab64413fd700fadf.png)</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>

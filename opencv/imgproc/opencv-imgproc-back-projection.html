@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="tool" content="leanote-desktop-app">
+<title>opencv-imgproc-back projection</title>
+<style>
+.tab{font-size:12px; margin-bottom: 10px;}
+.tab a{cursor:pointer;cursor:pointer;display:inline-block;margin-right:10px;color:#000}#tab-html{color:#ccc}
+
+.content-container .content-html{visibility: hidden;}
+.content-container.html .content-markdown{display:none}
+.content-container.html .content-html{display:block; visibility: visible;}
+.content-container.html #tab-markdown{color:#ccc}
+.content-container.html #tab-html{color:#000}
+.content-markdown {overflow: auto;}
+textarea {display: none;}
+
+*{font-family:"lucida grande","lucida sans unicode",lucida,helvetica,"Hiragino Sans GB","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;}
+
+body {
+  margin: 0;
+}
+
+/*公用文字样式*/
+h1{font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:14px}
+.note-container{
+    width:850px; 
+    margin:auto;
+    padding: 10px 20px;
+    box-shadow: 1px 1px 10px #eee;
+}
+#title {
+  margin: 0;
+}
+table {
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: 6px 13px;
+    border: 1px solid #ddd;
+}
+table th {
+    font-weight: bold;
+}
+
+table tr {
+    background-color: none;
+    border-top: 1px solid #ccc;
+}
+table tr:nth-child(2n) {
+    background-color: rgb(247, 247, 249);
+}
+.mce-item-table, .mce-item-table td, .mce-item-table th, .mce-item-table caption {
+  border: 1px solid #ddd;
+  border-collapse: collapse;
+  padding: 6px 13px;
+}
+blockquote {
+  border-left-width:10px;
+  background-color:rgba(128,128,128,0.05);
+  border-top-right-radius:5px;
+  border-bottom-right-radius:5px;
+  padding:15px 20px;
+  border-left:5px solid rgba(128,128,128,0.075);
+}
+blockquote p {
+  margin-bottom:1.1em;
+  font-size:1em;
+  line-height:1.45
+}
+blockquote ul:last-child,blockquote ol:last-child {
+  margin-bottom:0
+}
+pre {
+  padding: 18px;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+  border-radius: 3px;
+  display: block;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+.footnote {
+  vertical-align: top;
+  position: relative;
+  top: -0.5em;
+  font-size: .8em;
+}
+
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%;
+  display: block;
+  margin: auto;
+}
+pre {
+  word-break:break-word
+}
+p,pre,pre.prettyprint,blockquote {
+  margin:0 0 1.1em
+}
+hr {
+  margin:2em 0
+}
+img {
+  max-width:100%
+}
+.sequence-diagram,.flow-chart {
+  text-align:center;
+  margin-bottom:1.1em
+}
+.sequence-diagram text,.flow-chart text {
+  font-size:15px !important;
+  font-family:"Source Sans Pro",sans-serif !important
+}
+.sequence-diagram [fill="#ffffff"],.flow-chart [fill="#ffffff"] {
+  fill:#f6f6f6
+}
+.sequence-diagram [stroke="#000000"],.flow-chart [stroke="#000000"] {
+  stroke:#3f3f3f
+}
+.sequence-diagram text[stroke="#000000"],.flow-chart text[stroke="#000000"] {
+  stroke:none
+}
+.sequence-diagram [fill="#000"],.flow-chart [fill="#000"],.sequence-diagram [fill="#000000"],.flow-chart [fill="#000000"],.sequence-diagram [fill="black"],.flow-chart [fill="black"] {
+  fill:#3f3f3f
+}
+ul,ol {
+  margin-bottom:1.1em
+}
+ul ul,ol ul,ul ol,ol ol {
+  margin-bottom:1.1em
+}
+kbd {
+  padding:.1em .6em;
+  border:1px solid rgba(63,63,63,0.25);
+  -webkit-box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  box-shadow:0 1px 0 rgba(63,63,63,0.25);
+  font-size:.7em;
+  font-family:sans-serif;
+  background-color:#fff;
+  color:#333;
+  border-radius:3px;
+  display:inline-block;
+  margin:0 .1em;
+  white-space:nowrap
+}
+.toc ul {
+  list-style-type:none;
+  margin-bottom:15px
+}
+.m-todo-item {
+  list-style: none;
+}
+pre code {
+  padding: 0;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: inherit;
+  border-radius: 0;
+}
+</style>
+<!-- 该css供自定义样式 -->
+<link href="../leanote-markdown.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div class="note-container">
+		<h1 class="title" id="leanote-title">opencv-imgproc-back projection</h1>
+		<div class="content-container html" id="content-container">
+			<!-- 切换 -->
+			<div class="tab"><a id="tab-markdown">Markdown</a><a id="tab-html">HTML</a></div>
+			<textarea id="leanote-content-markdown">#Goal
+本节介绍:
+
+* 什么是Back Projection？为什么它有用处
+* 怎么使用OpenCV函数`calcBackProject`来计算Back Projection
+* 怎么使用OpenCV函数`mixChannels`来混合通道
+#Theory
+##什么是back projection ？
+* Back Projection是一种记录：指出给定的图像和给定的直方图模型之间的匹配程度.
+* 说的更简单些: For Back Projection, 你计算给出的直方图模型的某一种特征，然后在图像中去寻找这个特征.
+* 应用示例: 如果你有一个肤色的直方图(是一个色相-饱和度直方图 Hue-Saturation histogram ), 然后你就可以利用这个直方图去寻找图像中的皮肤区域；
+##back projection如何作用？
+* 我们使用肤色的例子来解释:
+
+* 假设你已经有了一张基于某肤色图片的直方图（基于色相-饱和度维度）(Hue-Saturation) . 如下所示的直方图就是肤色的直方图基准模型了.值得注意的是，获取这种直方图前，你得应用一些屏蔽方法屏蔽掉其他不相关的区域，只保留肤色部分:
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e6.png) ![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e7.png)
+* 然后你还有另外一张关于手的照片，以及H-S直方图：
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e1.png) ![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e5.png)
+* 我们要做的是利用基准肤色的直方图(我们上面用一幅手的图得到) 在测试图片总检测肤色区域.步骤如下：
+a. 测试图上的每个像素$p(i,j)$ , 找到这些像素落在直方图的哪些区间里(用($h_{i,j}$, $s_{i,j}$ 表示 ).
+b. 找到基准肤色直方图上区间$( h_{i,j}, s_{i,j} )$，读取对应的统计值.
+c. 把读取到的统计值放在新的图像里(BackProjection).同时，你也可以先对基准肤色图像直方图做归一化（256），以便显示出来.
+d. 应用以上步骤后，得到的测试图像结果:
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e3.png)
+e. 从统计角度讲, BackProjection存储的值代表了测试图像上该像素是属于皮肤的可能性 ，当然，这里的参考系是基准图像. 以这个例子来说，亮的地方代表了属于皮肤的可能性高，而暗的地方代表可能性低；
+#Code
+* 这个程序做什么?
+1. 加载图像.
+2. 转换成HSV模式然后分离H通道用于计算直方图 (使用OpenCV函数`mixChannels`).
+3. 让用户输入直方图的子区间值，用于做直方图计算.
+4. 计算直方图（当用户改变子区间的数量时更新）和同一个图像的back projection.
+5. 显示backprojection和histogram.
+* 代码：
+1. 下文将解释的代码版本
+2. 下载改良版本(使用H-S直方图以及`floodFill`定义mask屏蔽非肤色区域)：[improved demo](https://github.com/Itseez/opencv/blob/master/samples/cpp/tutorial_code/Histograms_Matching/calcBackProject_Demo2.cpp)
+3. 下载[classical camshiftdemo](https://github.com/Itseez/opencv/blob/master/samples/cpp/camshiftdemo.cpp)
+ ```
+         #include "opencv2/imgproc/imgproc.hpp"
+         #include "opencv2/highgui/highgui.hpp"
+        
+         #include <iostream>
+        
+         using namespace cv;
+         using namespace std;
+        
+        /// Global Variables
+        Mat src; Mat hsv; Mat hue;
+        int bins = 25;
+        
+        /// Function Headers
+        void Hist_and_Backproj(int, void* );
+        
+        /** @function main */
+        int main( int argc, char** argv )
+        {
+          /// Read the image
+          src = imread( argv[1], 1 );
+          /// Transform it to HSV
+          cvtColor( src, hsv, CV_BGR2HSV );
+        
+          /// Use only the Hue value
+          hue.create( hsv.size(), hsv.depth() );
+          int ch[] = { 0, 0 };
+          mixChannels( &hsv, 1, &hue, 1, ch, 1 );
+        
+          /// Create Trackbar to enter the number of bins
+          char* window_image = "Source image";
+          namedWindow( window_image, CV_WINDOW_AUTOSIZE );
+          createTrackbar("* Hue  bins: ", window_image, &bins, 180, Hist_and_Backproj );
+          Hist_and_Backproj(0, 0);
+        
+          /// Show the image
+          imshow( window_image, src );
+        
+          /// Wait until user exits the program
+          waitKey(0);
+          return 0;
+        }
+        
+        
+        /**
+         * @function Hist_and_Backproj
+         * @brief Callback to Trackbar
+         */
+        void Hist_and_Backproj(int, void* )
+        {
+          MatND hist;
+          int histSize = MAX( bins, 2 );
+          float hue_range[] = { 0, 180 };
+          const float* ranges = { hue_range };
+        
+          /// Get the Histogram and normalize it
+          calcHist( &hue, 1, 0, Mat(), hist, 1, &histSize, &ranges, true, false );
+          normalize( hist, hist, 0, 255, NORM_MINMAX, -1, Mat() );
+        
+          /// Get Backprojection
+          MatND backproj;
+          calcBackProject( &hue, 1, 0, hist, backproj, &ranges, 1, true );
+        
+          /// Draw the backproj
+          imshow( "BackProj", backproj );
+        
+          /// Draw the histogram
+          int w = 400; int h = 400;
+          int bin_w = cvRound( (double) w / histSize );
+          Mat histImg = Mat::zeros( w, h, CV_8UC3 );
+        
+          for( int i = 0; i < bins; i ++ )
+             { rectangle( histImg, Point( i*bin_w, h ), Point( (i+1)*bin_w, h - cvRound( hist.at<float>(i)*h/255.0 ) ), Scalar(        0, 0, 255 ), -1 ); }
+        
+          imshow( "Histogram", histImg );
+        }
+```
+#explanation
+1. 创建Mat对象存储图像，初始化直方图的子区间数量:
+
+        Mat src; Mat hsv; Mat hue;
+        int bins = 25;
+2.加载图像转成HSV:
+
+        src = imread( argv[1], 1 );
+        cvtColor( src, hsv, CV_BGR2HSV );
+3. 我们仅仅使用一个1-D的直方图:
+
+        hue.create( hsv.size(), hsv.depth() );
+        int ch[] = { 0, 0 };
+        mixChannels( &hsv, 1, &hue, 1, ch, 1 );
+如你所见，使用函数`mixChannels()` [function](http://docs.opencv.org/modules/core/doc/operations_on_arrays.html?highlight=mixchannels#mixchannelsmixChannels) 从HSV图像中来获取仅仅一个通道 0 (Hue) .参数列表:
+* &hsv: 源输入
+* 1: 源图像的个数
+* &hue: 目标输出
+* 1:目标输出个数
+* ch[] = {0,0}: index pairs指示了如何进行复制. 这里例子里， &hsv的Hue(0)通道将被复制到&hue (1-channel)的通道0位置
+* 1: Number of index pairs
+4. 创建滚动条让用户输入直方图子区间的数量bin values.任何改动都将会调用`Hist_and_Backproj`.
+
+        char* window_image = "Source image";
+        namedWindow( window_image, CV_WINDOW_AUTOSIZE );
+        createTrackbar("* Hue  bins: ", window_image, &bins, 180, Hist_and_Backproj );
+        Hist_and_Backproj(0, 0);
+5. 默认显示图像，等待用户输入:
+
+        imshow( window_image, src );
+
+        waitKey(0);
+        return 0;
+6. **Hist_and_Backproj function**: 给函数`calcHist`初始化参数. 从滚动条接收直方图的子区间数量:
+
+        void Hist_and_Backproj(int, void* )
+        {
+         MatND hist;
+        int histSize = MAX( bins, 2 );
+        float hue_range[] = { 0, 180 };
+        const float* ranges = { hue_range };
+7. 计算直方图并归一化到[0,255]
+
+        calcHist( &hue, 1, 0, Mat(), hist, 1, &histSize, &ranges, true, false );
+        normalize( hist, hist, 0, 255, NORM_MINMAX, -1, Mat() );
+8. 调用函数`calcBackProject`获取源图像的Backprojection
+
+        MatND backproj;
+        calcBackProject( &hue, 1, 0, hist, backproj, &ranges, 1, true );
+all the arguments are known (the same as used to calculate the histogram), only we add the backproj matrix, which will store the backprojection of the source image (&hue)
+9.显示backproj:
+
+        imshow( "BackProj", backproj );
+10. 绘制1-D直方图:
+
+        int w = 400; int h = 400;
+        int bin_w = cvRound( (double) w / histSize );
+        Mat histImg = Mat::zeros( w, h, CV_8UC3 );
+
+        for( int i = 0; i < bins; i ++ )
+        { rectangle( histImg, Point( i*bin_w, h ), Point( (i+1)*bin_w, h - cvRound( hist.at<float>(i)*h/255.0 ) ), Scalar( 0, 0, 255 ), -1 ); }
+
+        imshow( "Histogram", histImg );
+#result
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e2.png)
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e0.png)
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e4.png)</textarea>
+			<!-- markdown -->
+			<pre class="content-markdown">#Goal
+本节介绍:
+
+* 什么是Back Projection？为什么它有用处
+* 怎么使用OpenCV函数`calcBackProject`来计算Back Projection
+* 怎么使用OpenCV函数`mixChannels`来混合通道
+#Theory
+##什么是back projection ？
+* Back Projection是一种记录：指出给定的图像和给定的直方图模型之间的匹配程度.
+* 说的更简单些: For Back Projection, 你计算给出的直方图模型的某一种特征，然后在图像中去寻找这个特征.
+* 应用示例: 如果你有一个肤色的直方图(是一个色相-饱和度直方图 Hue-Saturation histogram ), 然后你就可以利用这个直方图去寻找图像中的皮肤区域；
+##back projection如何作用？
+* 我们使用肤色的例子来解释:
+
+* 假设你已经有了一张基于某肤色图片的直方图（基于色相-饱和度维度）(Hue-Saturation) . 如下所示的直方图就是肤色的直方图基准模型了.值得注意的是，获取这种直方图前，你得应用一些屏蔽方法屏蔽掉其他不相关的区域，只保留肤色部分:
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e6.png) ![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e7.png)
+* 然后你还有另外一张关于手的照片，以及H-S直方图：
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e1.png) ![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e5.png)
+* 我们要做的是利用基准肤色的直方图(我们上面用一幅手的图得到) 在测试图片总检测肤色区域.步骤如下：
+a. 测试图上的每个像素$p(i,j)$ , 找到这些像素落在直方图的哪些区间里(用($h_{i,j}$, $s_{i,j}$ 表示 ).
+b. 找到基准肤色直方图上区间$( h_{i,j}, s_{i,j} )$，读取对应的统计值.
+c. 把读取到的统计值放在新的图像里(BackProjection).同时，你也可以先对基准肤色图像直方图做归一化（256），以便显示出来.
+d. 应用以上步骤后，得到的测试图像结果:
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e3.png)
+e. 从统计角度讲, BackProjection存储的值代表了测试图像上该像素是属于皮肤的可能性 ，当然，这里的参考系是基准图像. 以这个例子来说，亮的地方代表了属于皮肤的可能性高，而暗的地方代表可能性低；
+#Code
+* 这个程序做什么?
+1. 加载图像.
+2. 转换成HSV模式然后分离H通道用于计算直方图 (使用OpenCV函数`mixChannels`).
+3. 让用户输入直方图的子区间值，用于做直方图计算.
+4. 计算直方图（当用户改变子区间的数量时更新）和同一个图像的back projection.
+5. 显示backprojection和histogram.
+* 代码：
+1. 下文将解释的代码版本
+2. 下载改良版本(使用H-S直方图以及`floodFill`定义mask屏蔽非肤色区域)：[improved demo](https://github.com/Itseez/opencv/blob/master/samples/cpp/tutorial_code/Histograms_Matching/calcBackProject_Demo2.cpp)
+3. 下载[classical camshiftdemo](https://github.com/Itseez/opencv/blob/master/samples/cpp/camshiftdemo.cpp)
+ ```
+         #include "opencv2/imgproc/imgproc.hpp"
+         #include "opencv2/highgui/highgui.hpp"
+        
+         #include <iostream>
+        
+         using namespace cv;
+         using namespace std;
+        
+        /// Global Variables
+        Mat src; Mat hsv; Mat hue;
+        int bins = 25;
+        
+        /// Function Headers
+        void Hist_and_Backproj(int, void* );
+        
+        /** @function main */
+        int main( int argc, char** argv )
+        {
+          /// Read the image
+          src = imread( argv[1], 1 );
+          /// Transform it to HSV
+          cvtColor( src, hsv, CV_BGR2HSV );
+        
+          /// Use only the Hue value
+          hue.create( hsv.size(), hsv.depth() );
+          int ch[] = { 0, 0 };
+          mixChannels( &hsv, 1, &hue, 1, ch, 1 );
+        
+          /// Create Trackbar to enter the number of bins
+          char* window_image = "Source image";
+          namedWindow( window_image, CV_WINDOW_AUTOSIZE );
+          createTrackbar("* Hue  bins: ", window_image, &bins, 180, Hist_and_Backproj );
+          Hist_and_Backproj(0, 0);
+        
+          /// Show the image
+          imshow( window_image, src );
+        
+          /// Wait until user exits the program
+          waitKey(0);
+          return 0;
+        }
+        
+        
+        /**
+         * @function Hist_and_Backproj
+         * @brief Callback to Trackbar
+         */
+        void Hist_and_Backproj(int, void* )
+        {
+          MatND hist;
+          int histSize = MAX( bins, 2 );
+          float hue_range[] = { 0, 180 };
+          const float* ranges = { hue_range };
+        
+          /// Get the Histogram and normalize it
+          calcHist( &hue, 1, 0, Mat(), hist, 1, &histSize, &ranges, true, false );
+          normalize( hist, hist, 0, 255, NORM_MINMAX, -1, Mat() );
+        
+          /// Get Backprojection
+          MatND backproj;
+          calcBackProject( &hue, 1, 0, hist, backproj, &ranges, 1, true );
+        
+          /// Draw the backproj
+          imshow( "BackProj", backproj );
+        
+          /// Draw the histogram
+          int w = 400; int h = 400;
+          int bin_w = cvRound( (double) w / histSize );
+          Mat histImg = Mat::zeros( w, h, CV_8UC3 );
+        
+          for( int i = 0; i < bins; i ++ )
+             { rectangle( histImg, Point( i*bin_w, h ), Point( (i+1)*bin_w, h - cvRound( hist.at<float>(i)*h/255.0 ) ), Scalar(        0, 0, 255 ), -1 ); }
+        
+          imshow( "Histogram", histImg );
+        }
+```
+#explanation
+1. 创建Mat对象存储图像，初始化直方图的子区间数量:
+
+        Mat src; Mat hsv; Mat hue;
+        int bins = 25;
+2.加载图像转成HSV:
+
+        src = imread( argv[1], 1 );
+        cvtColor( src, hsv, CV_BGR2HSV );
+3. 我们仅仅使用一个1-D的直方图:
+
+        hue.create( hsv.size(), hsv.depth() );
+        int ch[] = { 0, 0 };
+        mixChannels( &hsv, 1, &hue, 1, ch, 1 );
+如你所见，使用函数`mixChannels()` [function](http://docs.opencv.org/modules/core/doc/operations_on_arrays.html?highlight=mixchannels#mixchannelsmixChannels) 从HSV图像中来获取仅仅一个通道 0 (Hue) .参数列表:
+* &hsv: 源输入
+* 1: 源图像的个数
+* &hue: 目标输出
+* 1:目标输出个数
+* ch[] = {0,0}: index pairs指示了如何进行复制. 这里例子里， &hsv的Hue(0)通道将被复制到&hue (1-channel)的通道0位置
+* 1: Number of index pairs
+4. 创建滚动条让用户输入直方图子区间的数量bin values.任何改动都将会调用`Hist_and_Backproj`.
+
+        char* window_image = "Source image";
+        namedWindow( window_image, CV_WINDOW_AUTOSIZE );
+        createTrackbar("* Hue  bins: ", window_image, &bins, 180, Hist_and_Backproj );
+        Hist_and_Backproj(0, 0);
+5. 默认显示图像，等待用户输入:
+
+        imshow( window_image, src );
+
+        waitKey(0);
+        return 0;
+6. **Hist_and_Backproj function**: 给函数`calcHist`初始化参数. 从滚动条接收直方图的子区间数量:
+
+        void Hist_and_Backproj(int, void* )
+        {
+         MatND hist;
+        int histSize = MAX( bins, 2 );
+        float hue_range[] = { 0, 180 };
+        const float* ranges = { hue_range };
+7. 计算直方图并归一化到[0,255]
+
+        calcHist( &hue, 1, 0, Mat(), hist, 1, &histSize, &ranges, true, false );
+        normalize( hist, hist, 0, 255, NORM_MINMAX, -1, Mat() );
+8. 调用函数`calcBackProject`获取源图像的Backprojection
+
+        MatND backproj;
+        calcBackProject( &hue, 1, 0, hist, backproj, &ranges, 1, true );
+all the arguments are known (the same as used to calculate the histogram), only we add the backproj matrix, which will store the backprojection of the source image (&hue)
+9.显示backproj:
+
+        imshow( "BackProj", backproj );
+10. 绘制1-D直方图:
+
+        int w = 400; int h = 400;
+        int bin_w = cvRound( (double) w / histSize );
+        Mat histImg = Mat::zeros( w, h, CV_8UC3 );
+
+        for( int i = 0; i < bins; i ++ )
+        { rectangle( histImg, Point( i*bin_w, h ), Point( (i+1)*bin_w, h - cvRound( hist.at<float>(i)*h/255.0 ) ), Scalar( 0, 0, 255 ), -1 ); }
+
+        imshow( "Histogram", histImg );
+#result
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e2.png)
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e0.png)
+![](opencv-imgproc-back-projection_files/5754181eab64413fd70298e4.png)</pre>
+			<!-- html -->
+			<div class="content-html" id="leanote-content-html"></div>
+		</div>
+	</div>
+
+<!-- 该js供其它处理 -->
+<script src="../leanote-markdown.js"></script>
+<script src="http://leanote.github.io/markdown-to-html/markdown-to-html.min.js"></script>
+<script>
+function init() {
+	markdownToHtml(document.getElementById('leanote-content-markdown').value, document.getElementById('leanote-content-html'), function(html) {
+		// 解析后执行
+		if(window.markdownParsed) {
+			window.markdownParsed(html);
+		}
+	});
+	var $m = document.getElementById('tab-markdown');
+	var $h = document.getElementById('tab-html');
+	var $cc = document.getElementById('content-container');
+	function toggleToHtml(isToHtml) {
+		$cc.className = isToHtml ? 'content-container html' : 'content-container';
+	}
+	$m.addEventListener('click', function() {
+		toggleToHtml(false);
+	});
+	$h.addEventListener('click', function() {
+		toggleToHtml(true);
+	});
+}
+
+// 如果不要自动解析html, notParseMarkdown在leanote-markdown.js中定义
+if(!window.notParseMarkdown) {
+	init();
+}
+</script>
+</body>
+</html>
