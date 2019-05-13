@@ -131,5 +131,5 @@ plt.show()
 ```
 
 # 运行结果
-![run](http://code.huawei.com/z00438418/least-square-polyfit/raw/0c24020a44fe77f9c3c9316b036918a7ac7ab40d/run.png)
-![plot](http://code.huawei.com/z00438418/least-square-polyfit/raw/0c24020a44fe77f9c3c9316b036918a7ac7ab40d/figure_0.png)
+![run](https://github.com/JonahZeng/jonah_md_note/blob/master/python/%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98%E6%B3%95/run.png)
+![plot](https://github.com/JonahZeng/jonah_md_note/blob/master/python/%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98%E6%B3%95/figure_0.png)
