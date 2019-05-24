@@ -21,6 +21,9 @@
 
 对![](http://latex.codecogs.com/gif.latex?%28A%5E%7BT%7D*A%29)进行LU分解，然后解方程组即可得到`a,b,c`
 
+不幸的是：在LU分解过程中可能会碰到主元为0，为了解决这个问题，需要进行换行挑选主元，换行实际上可以用乘一个置换矩阵的形式表达：
+
+![](http://latex.codecogs.com/gif.latex?P*%28A%5E%7BT%7D*A%29*%5Cleft%5B%5Cbegin%7Bmatrix%7Da%20%5C%5Cb%20%5C%5Cc%20%5Cend%7Bmatrix%7D%5Cright%5D%20%3D%20P*A%5E%7BT%7D*B)
 # python代码示例
 如下代码演示了分别使用numpy自带的polyfit函数计算$a,b,c$以及使用最小二乘法公式手动计算`a,b,c`，它们的运算结果完全一致：
 
@@ -39,8 +42,8 @@ def polyfit2_np(x_in:np.ndarray, y_in:np.ndarray):
 
 # LU分解方阵
 def lu_comp(A):
-	row, col = A.shape
-	s = (row if row<col else col)
+	rows, cols = A.shape
+	s = (rows if rows<cols else cols)
 	for k in range(s):
 		for i in range(k+1, row):
 			A[i, k] = A[i, k]/A[k, k]
@@ -59,6 +62,72 @@ def lu_comp(A):
 	for i in range(s):
 		L[i, i] = 1
 	return L, U
+
+def plu_comp(A):
+	'''
+	PLU分解
+	'''
+	rows, cols = A.shape
+	s = (rows if rows<cols else cols)
+	P = np.zeros((rows, ), np.int)
+	for i in range(rows):
+		P[i] = i
+	for k in range(s):
+		p_update(A, k, rows, P)
+		x = 1.0/p_ref(A, k, k, P)
+		for i in range(k+1, rows):
+			y = p_ref(A, i, k, P)*x
+			p_set(A, i, k, P, y)
+		for i in range(k+1, rows):
+			for j in range(k+1, cols):
+				y = p_ref(A, i, j, P) - p_ref(A, i, k, P)*p_ref(A, k, j, P)
+				p_set(A, i, j, P, y)
+	print(A)
+	B = np.zeros_like(A)
+	for i in range(A.shape[0]):
+		B[i] = A[P[i]]
+	A = B
+	print(A)
+	L = np.zeros_like(A)
+	U = np.zeros_like(A)
+	s = (L.shape[0] if L.shape[0]<L.shape[1] else L.shape[1])
+	for row in range(A.shape[0]):
+		for col in range(A.shape[1]):
+			if row>col:
+				L[row, col] = A[row, col]
+			else:
+				U[row, col] = A[row, col]
+	for i in range(s):
+		L[i, i] = 1
+	return P, L, U
+
+
+def p_update(A, k, rows, P):
+	'''
+	P作为一个col vector，在每次挑选主元的时候需要更新，确保挑选这一列的最大值作为主元
+	'''
+	max_val = 0.0
+	max_index = 0
+	for i in range(k, rows):
+		x = abs(p_ref(A, i, k, P))
+		if x>max_val:
+			max_val = x
+			max_index = i
+
+	P[k], P[max_index] = P[max_index], P[k]
+
+def p_ref(A, i, j, P):
+	'''
+	P记录行交换，A实际上并没有发生行交换，因此需要借助P来取值
+	'''
+	return A[P[i], j]
+
+def p_set(A, i, j, P, val):
+	'''
+	P记录行交换，A实际上并没有发生行交换，因此需要借助P来赋值
+	'''
+	A[P[i], j] = val
+
 
 def polyfit2_lsq(x_in:np.ndarray, y_in:np.ndarray):
 	if len(x_in.shape) != 1 or len(y_in.shape) != 1:
@@ -82,12 +151,16 @@ def polyfit2_lsq(x_in:np.ndarray, y_in:np.ndarray):
 		for j in range(mat_l.shape[1]):
 			mat_l[i, j] = np.sum(A_tp[i, :]*A[:, j])
 
-	L, U = lu_comp(mat_l)
+	# L, U = lu_comp(mat_l)
 	# L*U*x = A^T * B = vec_r
+	# vec_r = np.zeros((mat_l.shape[0], ), dtype=np.float)
+	# for i in range(vec_r.shape[0]):
+		# vec_r[i] = np.sum(A_tp[i, :] * B)
+
+	P, L, U = plu_comp(mat_l)
 	vec_r = np.zeros((mat_l.shape[0], ), dtype=np.float)
 	for i in range(vec_r.shape[0]):
-		vec_r[i] = np.sum(A_tp[i, :] * B)
-
+		vec_r[P[i]] = np.sum(A_tp[i, :] * B)
 	# L*y = vec_r，解出y
 	y = np.zeros((L.shape[0], ), dtype=np.float)
 	for i in range(0, L.shape[0]):
